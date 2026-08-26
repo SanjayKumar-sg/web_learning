@@ -1,0 +1,12 @@
+export { default as AuthContainer } from './AuthContainer';
+export { default as AuthLayout } from './components/AuthLayout';
+export { default as PixelWorldBackground } from './components/PixelWorldBackground';
+export { default as PixelCharacter } from './components/PixelCharacter';
+export { default as GameHUD } from './components/GameHUD';
+export { default as Login } from './components/Login';
+export { default as Signup } from './components/Signup';
+export { default as ForgotPassword } from './components/ForgotPassword';
+export { default as OTPVerification } from './components/OTPVerification';
+export { default as ResetPassword } from './components/ResetPassword';
+export { default as PixelAvatar } from './components/PixelAvatar';
+export { default as XPBar } from './components/XPBar';
