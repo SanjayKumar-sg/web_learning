@@ -15,7 +15,7 @@ import ResetPassword from './components/ResetPassword';
  * 4. OTP Verification
  * 5. Reset Password
  */
-export default function AuthContainer({ initialScreen = 'login' }) {
+export default function AuthContainer({ initialScreen = 'login', onLoginSuccess }) {
   const [currentScreen, setCurrentScreen] = useState(initialScreen);
   const [flowState, setFlowState] = useState({
     email: 'player@college.edu',
@@ -42,14 +42,21 @@ export default function AuthContainer({ initialScreen = 'login' }) {
     setCurrentScreen(screen);
   };
 
-  const handleLoginSuccess = (userData) => {
+  const handleLoginSuccessLocal = (userData) => {
     setAvatarState('success');
     console.log('Player logged in successfully:', userData);
+    if (onLoginSuccess) {
+      // Small delay to show the success avatar state before transitioning
+      setTimeout(() => onLoginSuccess(userData), 1000);
+    }
   };
 
   const handleSignupSuccess = (userData) => {
     setAvatarState('success');
     console.log('Player registered successfully:', userData);
+    if (onLoginSuccess) {
+      setTimeout(() => onLoginSuccess(userData), 1000);
+    }
   };
 
   const handleVerifySuccess = (code) => {
@@ -150,7 +157,7 @@ export default function AuthContainer({ initialScreen = 'login' }) {
         {currentScreen === 'login' && (
           <Login
             onNavigate={handleNavigate}
-            onLoginSuccess={handleLoginSuccess}
+            onLoginSuccess={handleLoginSuccessLocal}
           />
         )}
 

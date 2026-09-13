@@ -22,3 +22,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Local documentation & private notes
+*ui*ux*details*.md
+ui_ux_details.md
+ui-ux-details.md
