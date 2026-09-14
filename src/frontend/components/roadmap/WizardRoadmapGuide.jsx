@@ -15,6 +15,7 @@ export default function WizardRoadmapGuide({
   wizardState,
   activeMilestone,
   nextMilestone,
+  state,
   catAnimation = 'idle',
   onDismiss,
   onAdvance,
@@ -27,8 +28,8 @@ export default function WizardRoadmapGuide({
   // (Milestones with x > 1000 are in the right half of the overworld)
   const isTargetOnRight = (activeMilestone?.x ?? 1000) > 1000;
   const dockPositionClass = isTargetOnRight
-    ? 'bottom-8 left-4 sm:left-8'
-    : 'bottom-8 right-4 sm:right-8';
+    ? 'bottom-10 left-4 sm:left-8'
+    : 'bottom-10 right-4 sm:right-8';
 
   // Pre-existing wizard character posture matching engine state
   const getWizardImage = () => {
@@ -183,12 +184,13 @@ export default function WizardRoadmapGuide({
                 <span>RETURN TO QUEST ({activeMilestone?.title ? activeMilestone.title.toUpperCase() : 'OBJECTIVE'})</span>
                 <span>➔</span>
               </button>
-            ) : onAdvance && nextMilestone ? (
+            ) : onAdvance && !state?.isFinished ? (
               <button
                 onClick={onAdvance}
                 className="font-vt323 text-base sm:text-lg bg-gradient-to-r from-yellow-500 to-amber-500 hover:from-yellow-400 hover:to-amber-400 text-[#0F0D1E] font-extrabold px-4 py-1.5 sm:px-5 sm:py-2 rounded-lg pixel-corners-sm shadow-[0_0_16px_rgba(250,204,21,0.65)] cursor-pointer transition-transform active:scale-95 flex items-center gap-2"
+                title={`Advance Cat to ${activeMilestone?.title || 'Next Goal'}`}
               >
-                <span>NEXT: {nextMilestone.title.toUpperCase()}</span>
+                <span>▶ ADVANCE: {activeMilestone?.title ? activeMilestone.title.toUpperCase() : 'NEXT GOAL'}</span>
                 <span>➔</span>
               </button>
             ) : (

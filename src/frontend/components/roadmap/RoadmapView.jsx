@@ -5,9 +5,11 @@ import FinalCelebrationModal from './FinalCelebrationModal';
 import SingleFrameRoadmap from './SingleFrameRoadmap';
 import AnimatedCatCharacter from './characters/AnimatedCatCharacter';
 import AnimatedFoodCharacter from './characters/AnimatedFoodCharacter';
+import MilestoneExplainPanel from './MilestoneExplainPanel';
 
 export default function RoadmapView({ onReturnToHall }) {
   const [showSingleFrameRoadmap, setShowSingleFrameRoadmap] = useState(false);
+  const [explainMilestone, setExplainMilestone] = useState(null);
   const {
     state,
     milestones,
@@ -29,6 +31,7 @@ export default function RoadmapView({ onReturnToHall }) {
     setShowCelebration
   } = useRoadmapEngine();
 
+  const activeMilestone = milestones.find((m) => m.id === state.activeMilestoneId) || milestones[0];
   const mapScrollRef = useRef(null);
 
   useEffect(() => {
@@ -209,7 +212,17 @@ export default function RoadmapView({ onReturnToHall }) {
             title="Recenter Camera to Cat & Food Target"
           >
             <span>🎯</span>
-            <span>Recenter to Target</span>
+            <span>Recenter</span>
+          </button>
+
+          <button
+            onClick={advanceToNext}
+            disabled={catMotion?.inFlight || state.isFinished}
+            className="px-3 py-1.5 rounded bg-gradient-to-r from-yellow-500 to-amber-500 hover:from-yellow-400 hover:to-amber-400 text-[#0F0D1E] font-vt323 text-sm flex items-center gap-1.5 transition-all cursor-pointer font-extrabold shadow-[0_0_12px_rgba(250,204,21,0.5)] active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+            title={`Advance Cat to ${activeMilestone?.title || 'Next Goal'}`}
+          >
+            <span>▶</span>
+            <span>NEXT GOAL: {(activeMilestone?.title || 'QUEST').toUpperCase()}</span>
           </button>
 
           <div className="h-4 w-px bg-gray-700"></div>
@@ -454,11 +467,15 @@ export default function RoadmapView({ onReturnToHall }) {
                     role="button"
                     tabIndex={0}
                     aria-label={`Milestone ${String(ms.order).padStart(2, '0')}: ${ms.title}. ${isCompleted ? 'Mastered' : isActiveObjective ? 'Active target' : isFoodIsland ? 'Chapter goal' : 'Locked'}`}
-                    onClick={() => touchIsland(ms)}
+                    onClick={() => {
+                      touchIsland(ms);
+                      setExplainMilestone(ms);
+                    }}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter' || e.key === ' ') {
                         e.preventDefault();
                         touchIsland(ms);
+                        setExplainMilestone(ms);
                       }
                     }}
                     className="cursor-pointer group outline-none focus:outline-none"
@@ -494,7 +511,18 @@ export default function RoadmapView({ onReturnToHall }) {
 
                     {/* Floating NEXT GOAL Beacon above active objective island */}
                     {isActiveObjective && !hasCat && !isCompleted && (
-                      <g transform="translate(0, -78)" className="animate-bounce pointer-events-none">
+                      <g
+                        transform={`translate(0, ${hasFood ? -108 : -88})`}
+                        className="animate-bounce cursor-pointer group pointer-events-auto"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          touchIsland(ms);
+                          setExplainMilestone(ms);
+                        }}
+                        role="button"
+                        tabIndex={0}
+                        aria-label={`Advance to next goal: ${ms.title}`}
+                      >
                         <rect
                           x="-68"
                           y="-14"
@@ -505,6 +533,7 @@ export default function RoadmapView({ onReturnToHall }) {
                           stroke="#22d3ee"
                           strokeWidth="2.5"
                           filter="url(#cyanGlow)"
+                          className="group-hover:fill-[#0c2e4a] transition-colors"
                         />
                         <text
                           x="0"
@@ -765,6 +794,16 @@ export default function RoadmapView({ onReturnToHall }) {
           <span className="text-green-400">● READY</span>
         </div>
       </footer>
+
+      {/* ================================================================= */}
+      {/* 7. MILESTONE EXPLANATION PANEL (slides in from right on click)    */}
+      {/* ================================================================= */}
+      {explainMilestone && (
+        <MilestoneExplainPanel
+          milestone={explainMilestone}
+          onClose={() => setExplainMilestone(null)}
+        />
+      )}
     </div>
   );
 }
