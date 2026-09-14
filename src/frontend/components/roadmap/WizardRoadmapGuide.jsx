@@ -42,14 +42,29 @@ export default function WizardRoadmapGuide({
 
   if (!wizardState?.visible) {
     return (
-      <button
-        onClick={onCenterHero}
-        className={`fixed ${dockPositionClass} z-40 bg-[#14102C]/95 hover:bg-purple-900 border-2 border-purple-400 text-yellow-300 font-vt323 text-sm px-3.5 py-2 rounded-lg shadow-[0_0_20px_rgba(168,85,247,0.7)] flex items-center gap-2 cursor-pointer transition-all animate-bounce`}
-        title="Recenter camera to Cat & Active Objective"
-      >
-        <span className="text-base">🎯</span>
-        <span>[ RECENTER TARGET ]</span>
-      </button>
+      <div className={`fixed ${dockPositionClass} z-40 flex items-center gap-2 select-none`}>
+        {onCenterHero && (
+          <button
+            onClick={onCenterHero}
+            className="bg-[#14102C]/95 hover:bg-purple-900 border-2 border-purple-400 text-yellow-300 font-vt323 text-base px-3.5 py-2 rounded-xl shadow-[0_0_20px_rgba(168,85,247,0.7)] flex items-center gap-2 cursor-pointer transition-all"
+            title="Recenter camera to Cat & Active Objective"
+          >
+            <span className="text-base">🎯</span>
+            <span>[ RECENTER ]</span>
+          </button>
+        )}
+        {onAdvance && !state?.isFinished && (
+          <button
+            onClick={onAdvance}
+            className="font-vt323 text-lg bg-gradient-to-r from-yellow-400 via-amber-400 to-yellow-500 hover:from-yellow-300 hover:to-amber-300 text-[#0E0C1B] font-black px-5 py-2 rounded-xl shadow-[0_0_25px_rgba(250,204,21,0.75)] cursor-pointer transition-all active:scale-95 flex items-center gap-2"
+            title={`Advance to ${activeMilestone?.title || 'Next Goal'}`}
+          >
+            <span>⚡</span>
+            <span>NEXT GOAL: {activeMilestone?.title?.toUpperCase() || 'QUEST'}</span>
+            <span>➔</span>
+          </button>
+        )}
+      </div>
     );
   }
 
@@ -58,36 +73,52 @@ export default function WizardRoadmapGuide({
     return (
       <aside
         aria-label="Sage Byterion Companion (Minimized)"
-        className={`fixed ${dockPositionClass} z-40 flex items-center gap-3 bg-[#100D24]/95 border-2 border-yellow-400/90 rounded-full px-4 py-2 shadow-[0_0_30px_rgba(250,204,21,0.55)] backdrop-blur-2xl animate-in fade-in cursor-pointer hover:scale-105 transition-all select-none group`}
-        onClick={() => setIsMinimized(false)}
-        title="Click to expand Sage Byterion's Codex Guide"
+        className={`fixed ${dockPositionClass} z-40 flex items-center gap-2 select-none`}
       >
-        <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-yellow-400 bg-purple-950 p-0.5 shrink-0 shadow-[0_0_10px_rgba(250,204,21,0.5)]">
-          <img
-            src={getWizardImage()}
-            alt="Sage Byterion"
-            className="w-full h-full object-contain animate-pixel-bob"
-            style={{ imageRendering: 'pixelated' }}
-          />
-        </div>
-        <div className="flex flex-col text-left">
-          <div className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-yellow-400 animate-ping"></span>
-            <span className="font-orbitron text-[10px] font-black text-yellow-300 tracking-wider">
-              SAGE BYTERION
+        <div
+          onClick={() => setIsMinimized(false)}
+          className="flex items-center gap-3 bg-[#100D24]/95 border-2 border-yellow-400/90 rounded-full px-4 py-2 shadow-[0_0_30px_rgba(250,204,21,0.55)] backdrop-blur-2xl animate-in fade-in cursor-pointer hover:scale-105 transition-all group"
+          title="Click to expand Sage Byterion's Codex Guide"
+        >
+          {/* Unboxed Minimized Avatar */}
+          <div className="relative w-10 h-10 -my-1 shrink-0">
+            <img
+              src={getWizardImage()}
+              alt="Sage Byterion"
+              className="w-full h-full object-contain filter drop-shadow-[0_0_8px_rgba(250,204,21,0.8)] animate-pixel-bob"
+              style={{ imageRendering: 'pixelated' }}
+            />
+          </div>
+          <div className="flex flex-col text-left">
+            <div className="flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-yellow-400 animate-ping"></span>
+              <span className="font-orbitron text-[10px] font-black text-yellow-300 tracking-wider">
+                SAGE BYTERION
+              </span>
+            </div>
+            <span className="font-vt323 text-xs text-cyan-300 group-hover:text-yellow-200 transition-colors">
+              [ 💬 CLICK TO EXPAND CODEX ]
             </span>
           </div>
-          <span className="font-vt323 text-xs text-cyan-300 group-hover:text-yellow-200 transition-colors">
-            [ 💬 CLICK TO EXPAND CODEX ]
-          </span>
         </div>
+
+        {/* Fixed Quick Next Goal Action Button */}
+        {onAdvance && !state?.isFinished && (
+          <button
+            onClick={onAdvance}
+            className="font-vt323 text-base bg-gradient-to-r from-yellow-400 via-amber-400 to-yellow-500 hover:from-yellow-300 hover:to-amber-300 text-[#0E0C1B] font-black px-4 py-2 rounded-xl shadow-[0_0_20px_rgba(250,204,21,0.7)] cursor-pointer transition-all active:scale-95 flex items-center gap-1.5 shrink-0"
+            title={`Advance to ${activeMilestone?.title || 'Next Goal'}`}
+          >
+            <span>⚡</span>
+            <span>NEXT GOAL: {activeMilestone?.title?.toUpperCase() || 'QUEST'}</span>
+            <span>➔</span>
+          </button>
+        )}
+
         {onCenterHero && (
           <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onCenterHero();
-            }}
-            className="ml-1 font-vt323 text-xs bg-cyan-950/80 hover:bg-cyan-800 text-cyan-200 px-2.5 py-1 rounded border border-cyan-400/50 shadow-sm cursor-pointer"
+            onClick={onCenterHero}
+            className="font-vt323 text-sm bg-cyan-950/80 hover:bg-cyan-800 text-cyan-200 px-3 py-2 rounded-xl border border-cyan-400/50 shadow-sm cursor-pointer"
             title="Center Target"
           >
             🎯
@@ -102,26 +133,37 @@ export default function WizardRoadmapGuide({
       aria-label="Sage Byterion Adventure Guide"
       className={`fixed ${dockPositionClass} z-40 max-w-xl sm:max-w-2xl w-[calc(100vw-2rem)] pointer-events-auto select-none animate-in slide-in-from-bottom-5 fade-in duration-300`}
     >
-      <div className="relative bg-[#100D24]/95 border-2 sm:border-3 border-yellow-400/90 rounded-2xl p-5 sm:p-6 shadow-[0_0_50px_rgba(0,0,0,0.95),0_0_35px_rgba(250,204,21,0.4)] backdrop-blur-2xl flex gap-4 sm:gap-5 items-start">
+      <div className="relative bg-[#100D24]/95 border-2 sm:border-3 border-yellow-400/90 rounded-2xl p-5 sm:p-6 shadow-[0_0_50px_rgba(0,0,0,0.95),0_0_35px_rgba(250,204,21,0.4)] backdrop-blur-2xl flex gap-4 sm:gap-6 items-start">
         {/* Ambient Top Glow */}
         <div className="absolute -top-10 left-12 w-36 h-20 bg-yellow-500/25 blur-2xl rounded-full pointer-events-none"></div>
 
-        {/* Wizard Character Avatar (Bigger & Crisp) */}
-        <div className="relative shrink-0 flex flex-col items-center">
-          <div className="w-22 h-22 sm:w-28 sm:h-28 bg-gradient-to-b from-[#251D4B] via-[#151030] to-[#0A0718] border-2 sm:border-3 border-yellow-400 rounded-xl flex items-center justify-center p-1.5 shadow-[0_0_20px_rgba(250,204,21,0.55)] overflow-hidden">
-            <img
-              src={getWizardImage()}
-              alt="Sage Byterion Guide"
-              className="w-full h-full object-contain filter drop-shadow-[0_0_8px_rgba(168,85,247,0.85)] animate-pixel-bob transition-all duration-200"
-              style={{ imageRendering: 'pixelated' }}
-              onError={(e) => {
-                e.target.src = '/assets/wizard/wizard_explaining.png';
-              }}
-            />
+        {/* Unboxed Freestanding Sage Byterion Character (No Box, No Border) */}
+        <div className="relative shrink-0 flex flex-col items-center select-none -mt-8 sm:-mt-12">
+          {/* Ambient Mystical Aura */}
+          <div className="absolute top-2 w-28 h-28 sm:w-36 sm:h-36 rounded-full bg-gradient-to-t from-purple-600/35 via-amber-400/25 to-transparent blur-xl pointer-events-none animate-pulse"></div>
+
+          {/* Freestanding Wizard Character Sprite */}
+          <img
+            src={getWizardImage()}
+            alt="Sage Byterion Guide"
+            className="relative z-10 w-28 h-32 sm:w-36 sm:h-44 object-contain filter drop-shadow-[0_0_16px_rgba(250,204,21,0.7)] drop-shadow-[0_12px_14px_rgba(0,0,0,0.85)] animate-pixel-bob transition-all duration-300"
+            style={{ imageRendering: 'pixelated' }}
+            onError={(e) => {
+              e.target.src = '/assets/wizard/wizard_explaining.png';
+            }}
+          />
+
+          {/* Magical Summoning Ground Sigil */}
+          <div className="w-24 h-3 sm:w-32 sm:h-3.5 rounded-full bg-yellow-400/25 border border-yellow-400/60 shadow-[0_0_14px_rgba(250,204,21,0.55)] blur-[0.5px] -mt-2"></div>
+
+          {/* Floating RPG Nameplate Badge */}
+          <div className="relative z-20 -mt-1 px-2.5 py-0.5 rounded-full bg-[#1A1435]/95 border border-yellow-400/80 shadow-[0_0_12px_rgba(250,204,21,0.5)] flex items-center gap-1">
+            <span className="text-yellow-400 text-[8px] animate-pulse">✦</span>
+            <span className="font-orbitron text-[9px] sm:text-[10px] font-black text-yellow-300 tracking-wider">
+              SAGE BYTERION
+            </span>
+            <span className="text-yellow-400 text-[8px] animate-pulse">✦</span>
           </div>
-          <span className="font-orbitron text-[10px] sm:text-xs font-black text-yellow-300 mt-1.5 tracking-wider">
-            SAGE BYTERION
-          </span>
         </div>
 
         {/* Speech Bubble Content */}
@@ -154,7 +196,7 @@ export default function WizardRoadmapGuide({
             </div>
           </div>
 
-          {/* Core 1–3 Sentence Concise Dialogue — ISSUE-02: text-xl/2xl prevents overflow */}
+          {/* Core 1–3 Sentence Concise Dialogue */}
           <div className="font-vt323 text-xl sm:text-2xl text-yellow-100 leading-snug whitespace-pre-line tracking-wide">
             "{wizardState.message}"
           </div>
@@ -185,7 +227,7 @@ export default function WizardRoadmapGuide({
             {onCenterHero && (
               <button
                 onClick={onCenterHero}
-                className="font-vt323 text-sm sm:text-base text-cyan-300 hover:text-white flex items-center gap-1.5 cursor-pointer transition-colors"
+                className="font-vt323 text-sm sm:text-base text-cyan-300 hover:text-white flex items-center gap-1.5 cursor-pointer transition-colors whitespace-nowrap shrink-0"
                 title="Center Camera on Target"
               >
                 <span className="text-base">🎯</span>
@@ -208,11 +250,12 @@ export default function WizardRoadmapGuide({
             ) : onAdvance && !state?.isFinished ? (
               <button
                 onClick={onAdvance}
-                className="font-vt323 text-base sm:text-lg bg-gradient-to-r from-yellow-500 to-amber-500 hover:from-yellow-400 hover:to-amber-400 text-[#0F0D1E] font-extrabold px-4 py-1.5 sm:px-5 sm:py-2 rounded-lg pixel-corners-sm shadow-[0_0_16px_rgba(250,204,21,0.65)] cursor-pointer transition-transform active:scale-95 flex items-center gap-2"
-                title={`Advance Cat to ${activeMilestone?.title || 'Next Goal'}`}
+                className="font-vt323 text-lg sm:text-2xl bg-gradient-to-r from-yellow-400 via-amber-400 to-yellow-500 hover:from-yellow-300 hover:to-amber-300 text-[#0E0C1B] font-black px-5 py-2 sm:px-6 sm:py-2.5 rounded-xl pixel-corners-sm shadow-[0_0_24px_rgba(250,204,21,0.75)] hover:shadow-[0_0_35px_rgba(250,204,21,0.95)] cursor-pointer transition-all active:scale-95 flex items-center gap-2 group shrink-0"
+                title={`Advance to ${activeMilestone?.title || 'Next Goal'}`}
               >
-                <span>▶ ADVANCE: {activeMilestone?.title ? activeMilestone.title.toUpperCase() : 'NEXT GOAL'}</span>
-                <span>➔</span>
+                <span className="text-yellow-900 text-xl group-hover:scale-125 transition-transform animate-pulse">⚡</span>
+                <span className="tracking-wide">NEXT GOAL: {activeMilestone?.title ? activeMilestone.title.toUpperCase() : 'QUEST'}</span>
+                <span className="group-hover:translate-x-1.5 transition-transform text-xl">➔</span>
               </button>
             ) : (
               <button

@@ -203,30 +203,20 @@ export default function RoadmapView({ onReturnToHall }) {
       {/* 2. FLOATING OVERWORLD DOCK & LEGEND (Top Left)                    */}
       {/* ================================================================= */}
       <div className="fixed top-18 left-4 sm:left-6 z-30 flex flex-col gap-2 pointer-events-auto">
-        <div className="p-1 bg-[#151326]/90 backdrop-blur-md border border-[#2A264F] rounded-lg flex items-center gap-1.5 shadow-2xl">
+        <div className="p-1.5 bg-[#151326]/95 backdrop-blur-md border border-[#2A264F] rounded-xl flex items-center gap-2 shadow-2xl">
           <button
             onClick={scrollToActiveHero}
-            className="px-3 py-1.5 rounded bg-cyan-950/80 border border-cyan-400 text-cyan-300 font-vt323 text-sm flex items-center gap-1.5 hover:bg-cyan-900 transition-colors cursor-pointer font-bold shadow-[0_0_10px_rgba(34,211,238,0.4)]"
+            className="px-3.5 py-1.5 rounded-lg bg-cyan-950/90 border border-cyan-400/80 text-cyan-300 font-vt323 text-sm sm:text-base flex items-center gap-1.5 hover:bg-cyan-900 transition-colors cursor-pointer font-bold shadow-[0_0_12px_rgba(34,211,238,0.4)]"
             title="Recenter Camera to Cat & Food Target"
           >
             <span>🎯</span>
-            <span>Recenter</span>
+            <span>Recenter Camera</span>
           </button>
 
-          <button
-            onClick={advanceToNext}
-            disabled={catMotion?.inFlight || state.isFinished}
-            className="px-3 py-1.5 rounded bg-gradient-to-r from-yellow-500 to-amber-500 hover:from-yellow-400 hover:to-amber-400 text-[#0F0D1E] font-vt323 text-sm flex items-center gap-1.5 transition-all cursor-pointer font-extrabold shadow-[0_0_12px_rgba(250,204,21,0.5)] active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
-            title={`Advance Cat to ${activeMilestone?.title || 'Next Goal'}`}
-          >
-            <span>▶</span>
-            <span>NEXT GOAL: {(activeMilestone?.title || 'QUEST').toUpperCase()}</span>
-          </button>
+          <div className="h-4 w-px bg-gray-700/80"></div>
 
-          <div className="h-4 w-px bg-gray-700"></div>
-
-          <div className="px-2 font-vt323 text-xs text-gray-400">
-            PROGRESS: <strong className="text-green-400">{completedCount} / {totalMilestones}</strong> ({progressPercent}%)
+          <div className="px-2.5 font-vt323 text-xs sm:text-sm text-gray-300">
+            PROGRESS: <strong className="text-yellow-400 font-black">{completedCount} / {totalMilestones}</strong> ({progressPercent}%)
           </div>
         </div>
 
@@ -503,45 +493,34 @@ export default function RoadmapView({ onReturnToHall }) {
                       />
                     )}
 
-                    {/* Floating NEXT GOAL Beacon above active objective island */}
+                    {/* In-World Quest Waypoint Beacon above active objective island */}
                     {isActiveObjective && !hasCat && !isCompleted && (
                       <g
-                        transform={`translate(0, ${hasFood ? -108 : -88})`}
-                        className="animate-bounce cursor-pointer group pointer-events-auto"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          touchIsland(ms);
-                        }}
-                        role="button"
-                        tabIndex={0}
-                        aria-label={`Advance to next goal: ${ms.title}`}
+                        transform={`translate(0, ${hasFood ? -92 : -72})`}
+                        className="animate-bounce pointer-events-none"
                       >
-                        <rect
-                          x="-68"
-                          y="-14"
-                          width="136"
-                          height="28"
-                          rx="7"
-                          fill="#081826"
-                          stroke="#22d3ee"
-                          strokeWidth="2.5"
+                        {/* Glowing Crystal Quest Marker */}
+                        <polygon
+                          points="0,-16 9,0 0,16 -9,0"
+                          fill="#22d3ee"
                           filter="url(#cyanGlow)"
-                          className="group-hover:fill-[#0c2e4a] transition-colors"
+                          opacity="0.95"
                         />
-                        <text
-                          x="0"
-                          y="5"
-                          fill="#67e8f9"
-                          fontFamily="'Orbitron', sans-serif"
-                          fontSize="11"
-                          fontWeight="900"
-                          letterSpacing="1px"
-                          textAnchor="middle"
-                        >
-                          ▶ NEXT GOAL ◀
-                        </text>
-                        {/* Downward pointing cyan triangle arrow */}
-                        <polygon points="-7,14 7,14 0,22" fill="#22d3ee" />
+                        <polygon
+                          points="0,-10 5,0 0,10 -5,0"
+                          fill="#ffffff"
+                        />
+                        {/* Pulsing Target Radar Ring */}
+                        <circle
+                          cx="0"
+                          cy="20"
+                          r="5"
+                          fill="none"
+                          stroke="#22d3ee"
+                          strokeWidth="1.5"
+                          className="animate-ping"
+                          opacity="0.75"
+                        />
                       </g>
                     )}
 
