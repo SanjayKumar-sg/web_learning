@@ -305,6 +305,102 @@ html, body {
   animation: shimmerXP 3s linear infinite;
 }
 
+/* === DOOR STAGGERED ENTRANCE === */
+@keyframes doorEntrance {
+  0% {
+    opacity: 0;
+    transform: translateY(24px) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-door-entrance {
+  animation: doorEntrance 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* === ANCIENT PARCHMENT SCROLL ANIMATIONS === */
+@keyframes scrollUnfurl {
+  0% {
+    opacity: 0;
+    transform: scaleY(0.1) scaleX(0.92);
+  }
+  65% {
+    opacity: 1;
+    transform: scaleY(1.02) scaleX(1.005);
+  }
+  100% {
+    opacity: 1;
+    transform: scaleY(1) scaleX(1);
+  }
+}
+
+.animate-scroll-unfurl {
+  transform-origin: center top;
+  animation: scrollUnfurl 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes scrollRollup {
+  0% {
+    opacity: 1;
+    transform: scaleY(1) scaleX(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scaleY(0.08) scaleX(0.94);
+  }
+}
+
+.animate-scroll-rollup {
+  transform-origin: center top;
+  animation: scrollRollup 0.28s cubic-bezier(0.7, 0, 0.84, 0) forwards;
+}
+
+@keyframes diamondGlow {
+  0%, 100% {
+    box-shadow: 0 0 5px #F5C344, 0 0 10px rgba(245, 195, 68, 0.4);
+    filter: brightness(1);
+  }
+  50% {
+    box-shadow: 0 0 12px #FFE885, 0 0 20px rgba(245, 195, 68, 0.8);
+    filter: brightness(1.25);
+  }
+}
+
+.animate-diamond-glow {
+  animation: diamondGlow 2.4s ease-in-out infinite;
+}
+
+@keyframes lightningSpark {
+  0%, 100% {
+    filter: drop-shadow(0 0 4px #F59E0B);
+    transform: scale(1);
+  }
+  50% {
+    filter: drop-shadow(0 0 12px #FDE047) drop-shadow(0 0 20px rgba(250, 204, 21, 0.85));
+    transform: scale(1.08);
+  }
+}
+
+.animate-lightning-spark {
+  animation: lightningSpark 1.8s ease-in-out infinite;
+}
+
+@keyframes emberBreathe {
+  0%, 100% {
+    box-shadow: 0 0 12px rgba(168, 50, 43, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 22px rgba(220, 38, 38, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+  }
+}
+
+.animate-ember-breathe {
+  animation: emberBreathe 2.2s ease-in-out infinite;
+}
+
 /* === PREFERS-REDUCED-MOTION SUPPORT === */
 @media (prefers-reduced-motion: reduce) {
   .animate-character-walk-across,
@@ -314,7 +410,8 @@ html, body {
   .animate-cloud-drift-fast,
   .animate-star-twinkle,
   .animate-pixel-bob,
-  .animate-float-particle {
+  .animate-float-particle,
+  .animate-door-entrance {
     animation: none !important;
     transform: none !important;
   }

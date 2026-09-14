@@ -27,3 +27,16 @@ dist-ssr
 *ui*ux*details*.md
 ui_ux_details.md
 ui-ux-details.md
+suggestiontasks.md
+
+# Private local test captures & screenshots (never shared or committed)
+screenshots/
+test_screenshots/
+*.png.local
+.temp_screenshots/
+temp_*/
+wizard_sprites_preview.png
+preview*.png
+scratch/
+screenshot.mjs
+
