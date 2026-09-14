@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import WizardMentor from './WizardMentor';
 import PathwayScrollJourney from './PathwayScrollJourney';
 import LearningRealmView from './LearningRealmView';
+import RoadmapView from '../roadmap/RoadmapView';
 import { PATHWAYS_DATA } from '../../../data/pathways';
 import { useWizardFlow } from '../../hooks/useWizardFlow';
 
@@ -277,8 +278,19 @@ export default function Homepage({ onLogout, user = null }) {
     }, 2200);
   };
 
-  // If in active confirmed realm, render realm view
+  // If in active confirmed realm, render roadmap view for JavaScript
   if (confirmedRealm) {
+    if (confirmedRealm.id === 'javascript') {
+      return (
+        <RoadmapView
+          onReturnToHall={() => {
+            setConfirmedRealm(null);
+            onReturnToHall();
+          }}
+        />
+      );
+    }
+
     return (
       <LearningRealmView
         realm={confirmedRealm}
