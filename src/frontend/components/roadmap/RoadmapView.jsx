@@ -1,9 +1,13 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { useRoadmapEngine } from '../../hooks/useRoadmapEngine';
 import WizardRoadmapGuide from './WizardRoadmapGuide';
 import FinalCelebrationModal from './FinalCelebrationModal';
+import SingleFrameRoadmap from './SingleFrameRoadmap';
+import AnimatedCatCharacter from './characters/AnimatedCatCharacter';
+import AnimatedFoodCharacter from './characters/AnimatedFoodCharacter';
 
 export default function RoadmapView({ onReturnToHall }) {
+  const [showSingleFrameRoadmap, setShowSingleFrameRoadmap] = useState(false);
   const {
     state,
     milestones,
@@ -12,9 +16,14 @@ export default function RoadmapView({ onReturnToHall }) {
     progressPercent,
     catAnimation,
     foodAnimation,
+    catFacing,
+    catMotion,
+    foodMotion,
     wizardState,
     showCelebration,
     touchIsland,
+    advanceToNext,
+    returnToObjective,
     dismissWizard,
     resetProgress,
     setShowCelebration
@@ -22,45 +31,69 @@ export default function RoadmapView({ onReturnToHall }) {
 
   const mapScrollRef = useRef(null);
 
-  // Auto-scroll to Cat / Active Target on initial mount
   useEffect(() => {
-    if (mapScrollRef.current) {
-      // Find position of active milestone
-      const activeMs = milestones.find((m) => m.id === state.foodPositionId) || milestones[0];
-      const targetScrollY = Math.max(0, activeMs.y - 380);
-      mapScrollRef.current.scrollTo({ top: targetScrollY, behavior: 'smooth' });
+    if (import.meta.env.DEV) {
+      window.__roadmapTest = {
+        touchIsland,
+        advanceToNext,
+        resetProgress,
+        milestones,
+        state,
+        setShowCelebration,
+        setShowSingleFrameRoadmap
+      };
     }
-  }, [state.foodPositionId, milestones]);
+  }, [touchIsland, advanceToNext, resetProgress, milestones, state, setShowCelebration]);
 
-  // Recenter button action
-  const scrollToActiveHero = () => {
-    if (mapScrollRef.current) {
-      const activeMs = milestones.find((m) => m.id === state.foodPositionId) || milestones[0];
-      const targetScrollY = Math.max(0, activeMs.y - 380);
-      mapScrollRef.current.scrollTo({ top: targetScrollY, behavior: 'smooth' });
-    }
+  // ISSUE-11: Single extracted scroll centering function (DRY)
+  const centerOnActiveTarget = (behavior = 'smooth') => {
+    if (!mapScrollRef.current) return;
+    const activeMs =
+      milestones.find((m) => m.id === state.activeMilestoneId) ||
+      milestones.find((m) => m.id === state.foodPositionId) ||
+      milestones[0];
+    const viewportW = mapScrollRef.current.clientWidth || window.innerWidth || 1440;
+    const viewportH = mapScrollRef.current.clientHeight || window.innerHeight || 900;
+    // Intelligent dynamic framing: Guide docks opposite side from active node
+    const isRightNode = activeMs.x > 1000;
+    const targetScrollX = isRightNode
+      ? Math.max(0, activeMs.x - viewportW * 0.58)
+      : Math.max(0, activeMs.x - viewportW * 0.42);
+    const targetScrollY = Math.max(0, activeMs.y - viewportH * 0.46);
+    mapScrollRef.current.scrollTo({ top: targetScrollY, left: targetScrollX, behavior });
   };
 
+  // Auto-scroll to Cat / Active Target on initial mount and viewport resize
+  useEffect(() => {
+    centerOnActiveTarget();
+    const handleResize = () => centerOnActiveTarget('instant');
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [state.activeMilestoneId, state.foodPositionId, milestones]);
+
+  // Recenter button action (alias)
+  const scrollToActiveHero = () => centerOnActiveTarget();
+
   // SVG connecting road path string linking all 16 milestone coordinates
-  // From HTML (1000, 3320) up through CSS, JS, etc., to Backend Project (1000, 80)
+  // Smooth continuous Bezier spline passing cleanly through each island station
   const mainRoadPath = `
-    M 1000 3500
-    C 1000 3420, 1000 3380, 1000 3320
-    C 840 3260, 620 3180, 620 3040
-    C 780 2920, 1180 2860, 1180 2740
-    C 1020 2620, 740 2540, 740 2420
-    C 880 2300, 1160 2240, 1160 2120
-    C 1020 2000, 780 1940, 780 1820
-    C 860 1700, 1000 1620, 1000 1520
-    C 1120 1420, 1260 1340, 1260 1240
-    C 1100 1140, 820 1060, 820 980
-    C 960 900, 1180 840, 1180 780
-    C 1000 720, 740 680, 740 620
-    C 880 560, 1140 520, 1140 480
-    C 1020 420, 820 400, 820 360
-    C 960 320, 1140 300, 1140 260
-    C 1020 220, 840 200, 840 170
-    C 900 130, 1000 110, 1000 80
+    M 1000 3540
+    C 1000 3440, 1000 3380, 1000 3300
+    C 1000 3200, 680 3180, 680 3080
+    C 680 2980, 1300 2960, 1300 2860
+    C 1300 2760, 720 2740, 720 2640
+    C 720 2540, 1280 2520, 1280 2420
+    C 1280 2320, 700 2300, 700 2200
+    C 700 2100, 1260 2080, 1260 1980
+    C 1260 1880, 740 1860, 740 1760
+    C 740 1660, 1240 1640, 1240 1540
+    C 1240 1440, 760 1420, 760 1320
+    C 760 1220, 1220 1200, 1220 1100
+    C 1220 1000, 780 980, 780 880
+    C 780 780, 1200 760, 1200 660
+    C 1200 560, 800 540, 800 440
+    C 800 350, 1160 340, 1160 260
+    C 1160 170, 1000 170, 1000 90
   `;
 
   return (
@@ -84,9 +117,9 @@ export default function RoadmapView({ onReturnToHall }) {
               </span>
             </div>
             <div className="font-vt323 text-xs text-gray-400 flex items-center gap-2">
-              <span>CAT: <strong className="text-cyan-300">🐱 {state.catPositionId.toUpperCase()}</strong></span>
+              <span>CAT: <strong className="text-cyan-300">🐱 {(milestones.find(m => m.id === state.catPositionId)?.title || state.catPositionId).toUpperCase()}</strong></span>
               <span>•</span>
-              <span>FOOD: <strong className="text-yellow-300">🍖 {state.foodPositionId.toUpperCase()}</strong></span>
+              <span>FOOD: <strong className="text-yellow-300">🍖 {(milestones.find(m => m.id === state.foodPositionId)?.title || state.foodPositionId).toUpperCase()}</strong></span>
             </div>
           </div>
         </div>
@@ -134,21 +167,33 @@ export default function RoadmapView({ onReturnToHall }) {
         </div>
 
         {/* Right Controls */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2">
+          <button
+            onClick={() => setShowSingleFrameRoadmap(true)}
+            className="font-vt323 text-xs sm:text-sm bg-yellow-950/80 hover:bg-yellow-900 text-yellow-300 hover:text-white border border-yellow-500/80 px-2.5 py-1 sm:px-3 sm:py-1.5 rounded pixel-corners-sm transition-all cursor-pointer shadow-[0_0_12px_rgba(250,204,21,0.35)] flex items-center gap-1.5 shrink-0"
+            title="View complete 16-milestone roadmap in a single frame"
+          >
+            <span>🗺️</span>
+            <span className="hidden sm:inline">[ FULL ROADMAP (1 FRAME) ]</span>
+            <span className="sm:hidden">FULL MAP</span>
+          </button>
+
           <button
             onClick={resetProgress}
-            className="font-vt323 text-xs text-gray-400 hover:text-red-300 border border-gray-800 hover:border-red-800/80 px-2.5 py-1.5 rounded transition-colors cursor-pointer"
+            className="font-vt323 text-xs text-gray-400 hover:text-red-300 border border-gray-800 hover:border-red-800/80 px-2 py-1 sm:px-2.5 sm:py-1.5 rounded transition-colors cursor-pointer shrink-0"
             title="Reset journey to beginning"
           >
-            [ ⟲ RESET ]
+            <span className="hidden sm:inline">[ ⟲ RESET ]</span>
+            <span className="sm:hidden">⟲</span>
           </button>
 
           <button
             onClick={onReturnToHall}
-            className="font-vt323 text-xs sm:text-sm bg-[#1A1733] hover:bg-purple-950 text-cyan-300 hover:text-white border border-purple-500/50 px-3.5 py-1.5 rounded pixel-corners-sm transition-all cursor-pointer shadow-[0_0_12px_rgba(168,85,247,0.35)] flex items-center gap-1.5"
+            className="font-vt323 text-xs sm:text-sm bg-[#1A1733] hover:bg-purple-950 text-cyan-300 hover:text-white border border-purple-500/50 px-2.5 py-1 sm:px-3.5 sm:py-1.5 rounded pixel-corners-sm transition-all cursor-pointer shadow-[0_0_12px_rgba(168,85,247,0.35)] flex items-center gap-1 shrink-0"
           >
             <span>🏛️</span>
-            <span>[ ← RETURN TO GREAT HALL ]</span>
+            <span className="hidden sm:inline">[ ← RETURN TO GREAT HALL ]</span>
+            <span className="sm:hidden">HALL</span>
           </button>
         </div>
       </header>
@@ -174,19 +219,19 @@ export default function RoadmapView({ onReturnToHall }) {
           </div>
         </div>
 
-        {/* Legend Pill */}
+        {/* Legend Pill — color keys only, no numeric duplication */}
         <div className="px-3 py-1 bg-[#151326]/90 backdrop-blur-md border border-[#2A264F] rounded-lg flex items-center gap-3 font-vt323 text-xs text-gray-300 shadow-md">
           <div className="flex items-center gap-1">
             <span className="w-2.5 h-2.5 rounded-full bg-yellow-400"></span>
-            <span className="text-yellow-400">Mastered ({completedCount})</span>
+            <span className="text-yellow-400">Mastered</span>
           </div>
           <div className="flex items-center gap-1">
             <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-ping"></span>
-            <span className="text-cyan-300 font-bold">Active Objective</span>
+            <span className="text-cyan-300 font-bold">Active</span>
           </div>
           <div className="flex items-center gap-1">
             <span className="w-2.5 h-2.5 rounded-full bg-gray-600"></span>
-            <span className="text-gray-500">Locked ({totalMilestones - completedCount})</span>
+            <span className="text-gray-500">Locked</span>
           </div>
         </div>
       </div>
@@ -314,13 +359,20 @@ export default function RoadmapView({ onReturnToHall }) {
             <g id="floatingIslands" filter="url(#terrainShadow)">
               {/* Starting Harbor Dock at Bottom */}
               <g transform="translate(1000, 3540)">
-                <ellipse cx="0" cy="40" rx="180" ry="80" fill="url(#islandCliffGrad)" stroke="#271302" strokeWidth="4" />
-                <ellipse cx="0" cy="15" rx="170" ry="70" fill="#15803d" stroke="#4ade80" strokeWidth="4" />
-                <ellipse cx="0" cy="10" rx="155" ry="60" fill="url(#rpgGrassTile)" />
-                <rect x="-80" y="-10" width="160" height="32" rx="4" fill="#151326" stroke="#facc15" strokeWidth="1.5" />
-                <text x="0" y="10" fill="#facc15" fontFamily="'Orbitron', sans-serif" fontSize="13" fontWeight="bold" textAnchor="middle">
+                <ellipse cx="0" cy="40" rx="160" ry="70" fill="url(#islandCliffGrad)" stroke="#271302" strokeWidth="4" />
+                <ellipse cx="0" cy="15" rx="150" ry="60" fill="#15803d" stroke="#4ade80" strokeWidth="4" />
+                <ellipse cx="0" cy="10" rx="135" ry="50" fill="url(#rpgGrassTile)" />
+                <rect x="-175" y="-20" width="350" height="56" rx="10" fill="#151326" stroke="#facc15" strokeWidth="2.5" />
+                <text x="0" y="16" fill="#facc15" fontFamily="'Orbitron', sans-serif" fontSize="24" fontWeight="900" letterSpacing="1px" textAnchor="middle">
                   🚀 JOURNEY ENTRANCE
                 </text>
+
+                {/* Cat character at starting harbor dock (2x Hero Scale) */}
+                {state.catPositionId === 'start' && !catMotion?.inFlight && (
+                  <g transform="translate(0, -56)">
+                    <AnimatedCatCharacter state={catAnimation} facing={catFacing} scale={2.0} />
+                  </g>
+                )}
               </g>
 
               {/* 16 Floating Biome Islands */}
@@ -389,7 +441,8 @@ export default function RoadmapView({ onReturnToHall }) {
             <g id="milestoneStations">
               {milestones.map((ms) => {
                 const isCompleted = state.completedMilestones.includes(ms.id);
-                const isActiveTarget = state.foodPositionId === ms.id;
+                const isActiveObjective = state.activeMilestoneId === ms.id;
+                const isFoodIsland = state.foodPositionId === ms.id;
                 const hasCat = state.catPositionId === ms.id;
                 const hasFood = state.foodPositionId === ms.id;
                 const isBothHere = hasCat && hasFood;
@@ -398,51 +451,127 @@ export default function RoadmapView({ onReturnToHall }) {
                   <g
                     key={`station-${ms.id}`}
                     transform={`translate(${ms.x}, ${ms.y})`}
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`Milestone ${String(ms.order).padStart(2, '0')}: ${ms.title}. ${isCompleted ? 'Mastered' : isActiveObjective ? 'Active target' : isFoodIsland ? 'Chapter goal' : 'Locked'}`}
                     onClick={() => touchIsland(ms)}
-                    className="cursor-pointer group"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        touchIsland(ms);
+                      }
+                    }}
+                    className="cursor-pointer group outline-none focus:outline-none"
                   >
-                    {/* Ring Halo around station */}
-                    {isActiveTarget && (
+                    {/* Ring Halo around active objective */}
+                    {isActiveObjective && (
                       <circle
                         cx="0"
                         cy="0"
-                        r="66"
+                        r="38"
                         fill="none"
                         stroke="#5de6ff"
-                        strokeWidth="3.5"
-                        strokeDasharray="12 8"
+                        strokeWidth="2.5"
+                        strokeDasharray="6 5"
                         className="animate-spin"
                         style={{ animationDuration: '6s' }}
                       />
                     )}
 
-                    {/* Central Pedestal */}
+                    {/* Ring Halo around chapter goal food island */}
+                    {isFoodIsland && !isActiveObjective && (
+                      <circle
+                        cx="0"
+                        cy="0"
+                        r="34"
+                        fill="none"
+                        stroke="#f59e0b"
+                        strokeWidth="2"
+                        strokeDasharray="4 4"
+                        className="animate-pulse"
+                      />
+                    )}
+
+                    {/* Floating NEXT GOAL Beacon above active objective island */}
+                    {isActiveObjective && !hasCat && !isCompleted && (
+                      <g transform="translate(0, -78)" className="animate-bounce pointer-events-none">
+                        <rect
+                          x="-68"
+                          y="-14"
+                          width="136"
+                          height="28"
+                          rx="7"
+                          fill="#081826"
+                          stroke="#22d3ee"
+                          strokeWidth="2.5"
+                          filter="url(#cyanGlow)"
+                        />
+                        <text
+                          x="0"
+                          y="5"
+                          fill="#67e8f9"
+                          fontFamily="'Orbitron', sans-serif"
+                          fontSize="11"
+                          fontWeight="900"
+                          letterSpacing="1px"
+                          textAnchor="middle"
+                        >
+                          ▶ NEXT GOAL ◀
+                        </text>
+                        {/* Downward pointing cyan triangle arrow */}
+                        <polygon points="-7,14 7,14 0,22" fill="#22d3ee" />
+                      </g>
+                    )}
+
+                    {/* Central Pedestal (Enlarged & Prominent) */}
                     <circle
                       cx="0"
                       cy="0"
-                      r="46"
+                      r="26"
                       fill="#151326"
-                      stroke={isCompleted ? '#facc15' : isActiveTarget ? '#5de6ff' : '#494454'}
-                      strokeWidth="4"
-                      filter={isCompleted ? 'url(#goldGlow)' : isActiveTarget ? 'url(#cyanGlow)' : 'none'}
+                      stroke={
+                        isCompleted
+                          ? '#facc15'
+                          : isActiveObjective
+                          ? '#5de6ff'
+                          : isFoodIsland
+                          ? '#f59e0b'
+                          : '#494454'
+                      }
+                      strokeWidth={isActiveObjective ? '3.5' : '2.8'}
+                      filter={
+                        isCompleted
+                          ? 'url(#goldGlow)'
+                          : isActiveObjective
+                          ? 'url(#cyanGlow)'
+                          : 'none'
+                      }
                     />
 
                     <circle
                       cx="0"
                       cy="0"
-                      r="36"
-                      fill={isCompleted ? '#ca801e' : isActiveTarget ? '#00cbe6' : '#1e1c27'}
-                      opacity={isCompleted || isActiveTarget ? 0.35 : 0.8}
+                      r="18"
+                      fill={
+                        isCompleted
+                          ? '#ca801e'
+                          : isActiveObjective
+                          ? '#00cbe6'
+                          : isFoodIsland
+                          ? '#b45309'
+                          : '#1e1c27'
+                      }
+                      opacity={isCompleted || isActiveObjective || isFoodIsland ? 0.4 : 0.8}
                     />
 
                     {/* Milestone Order Number */}
                     <text
                       x="0"
-                      y="8"
+                      y="5"
                       fill="#ffffff"
                       fontFamily="'Orbitron', sans-serif"
-                      fontSize="22"
-                      fontWeight="800"
+                      fontSize="13"
+                      fontWeight="900"
                       textAnchor="middle"
                     >
                       {String(ms.order).padStart(2, '0')}
@@ -450,125 +579,103 @@ export default function RoadmapView({ onReturnToHall }) {
 
                     {/* Gold Trophy Checkmark Flag on Completed */}
                     {isCompleted && (
-                      <g transform="translate(30, -32)">
-                        <circle cx="0" cy="0" r="14" fill="#ca801e" stroke="#facc15" strokeWidth="2.5" />
-                        <text x="0" y="5" fill="#ffffff" fontFamily="'JetBrains Mono', monospace" fontSize="14" fontWeight="bold" textAnchor="middle">
+                      <g transform="translate(20, -20)">
+                        <circle cx="0" cy="0" r="9" fill="#ca801e" stroke="#facc15" strokeWidth="2" />
+                        <text x="0" y="4" fill="#ffffff" fontFamily="'JetBrains Mono', monospace" fontSize="10" fontWeight="900" textAnchor="middle">
                           ✓
                         </text>
                       </g>
                     )}
 
-                    {/* Island Label Banner */}
-                    <g transform="translate(0, 62)">
+                    {/* ISSUE-01: Island Label Banner — narrowed 350→280px, font 26→20px to avoid road overlap */}
+                    <g transform="translate(0, 36)">
                       <rect
-                        x="-115"
+                        x="-140"
                         y="0"
-                        width="230"
-                        height="44"
-                        rx="6"
-                        fill="#151326"
-                        stroke={isCompleted ? '#facc15' : isActiveTarget ? '#5de6ff' : '#2A264F'}
-                        strokeWidth="2"
-                        className="shadow-xl"
+                        width="280"
+                        height="64"
+                        rx="10"
+                        fill="#100D22"
+                        stroke={
+                          isCompleted
+                            ? '#facc15'
+                            : isActiveObjective
+                            ? '#5de6ff'
+                            : isFoodIsland
+                            ? '#f59e0b'
+                            : '#2A264F'
+                        }
+                        strokeWidth={isActiveObjective ? '3.5' : '2.5'}
+                        filter={isActiveObjective ? 'url(#cyanGlow)' : 'none'}
+                        className="shadow-[0_0_25px_rgba(0,0,0,0.8)]"
                       />
                       <text
                         x="0"
-                        y="20"
-                        fill={isActiveTarget ? '#5de6ff' : '#ffffff'}
+                        y="27"
+                        fill={isActiveObjective ? '#5de6ff' : isFoodIsland ? '#f59e0b' : '#ffffff'}
                         fontFamily="'Orbitron', sans-serif"
-                        fontSize="14"
-                        fontWeight="bold"
+                        fontSize="20"
+                        fontWeight="900"
+                        letterSpacing="1px"
                         textAnchor="middle"
+                        filter="drop-shadow(0 2px 4px rgba(0,0,0,0.8))"
                       >
                         {String(ms.order).padStart(2, '0')} {ms.title}
                       </text>
                       <text
                         x="0"
-                        y="34"
-                        fill={isCompleted ? '#facc15' : isActiveTarget ? '#38bdf8' : '#6b7280'}
+                        y="48"
+                        fill={
+                          isCompleted
+                            ? '#facc15'
+                            : isActiveObjective
+                            ? '#38bdf8'
+                            : isFoodIsland
+                            ? '#f59e0b'
+                            : '#94a3b8'
+                        }
                         fontFamily="'JetBrains Mono', monospace"
-                        fontSize="10"
-                        fontWeight="600"
+                        fontSize="13"
+                        fontWeight="800"
+                        letterSpacing="0.5px"
                         textAnchor="middle"
                       >
-                        {isCompleted ? `MASTERED • +${ms.xp} XP` : isActiveTarget ? '▶ TOUCH TO LEAP HERE' : 'LOCKED'}
+                        {isCompleted
+                          ? `MASTERED • +${ms.xp} XP`
+                          : isActiveObjective
+                          ? '▶ TOUCH TO LEAP'
+                          : isFoodIsland
+                          ? '🍖 CHAPTER GOAL'
+                          : 'LOCKED'}
                       </text>
                     </g>
 
                     {/* =================================================== */}
-                    {/* 4. THE CAT & FOOD CHARACTERS ON THIS ISLAND         */}
+                    {/* 4. THE CAT & FOOD CHARACTERS (2X HERO SCALE)        */}
                     {/* =================================================== */}
                     {/* Case A: Cat and Food joined together! (Finale) */}
                     {isBothHere ? (
-                      <g transform="translate(0, -95)" className="animate-bounce">
-                        <rect x="-70" y="-22" width="140" height="40" rx="8" fill="#151326" stroke="#facc15" strokeWidth="2.5" />
-                        <text x="0" y="4" fontSize="22" textAnchor="middle">🐱 ❤️ 🍖</text>
+                      <g transform="translate(0, -56)">
+                        <g transform="translate(-32, 0)">
+                          <AnimatedCatCharacter state="celebrating" facing="right" scale={2.0} />
+                        </g>
+                        <g transform="translate(32, 0)">
+                          <AnimatedFoodCharacter state="joined" scale={2.0} />
+                        </g>
                       </g>
                     ) : (
                       <>
                         {/* Case B: Cat is on this island */}
-                        {hasCat && (
-                          <g transform="translate(0, -90)">
-                            {/* Cat Token Box */}
-                            <g className={catAnimation === 'jumping' ? 'animate-bounce' : 'animate-cat-idle'}>
-                              <rect
-                                x="-45"
-                                y="-24"
-                                width="90"
-                                height="42"
-                                rx="8"
-                                fill="#0B0A16"
-                                stroke="#5de6ff"
-                                strokeWidth="2.5"
-                                filter="url(#cyanGlow)"
-                              />
-                              <text x="-16" y="5" fontSize="22">🐱</text>
-                              <text
-                                x="12"
-                                y="3"
-                                fill="#5de6ff"
-                                fontFamily="'Orbitron', sans-serif"
-                                fontSize="11"
-                                fontWeight="bold"
-                                textAnchor="middle"
-                              >
-                                YOU
-                              </text>
-                              <polygon points="0,22 -8,14 8,14" fill="#5de6ff" />
-                            </g>
+                        {hasCat && !catMotion?.inFlight && (
+                          <g transform="translate(0, -56)">
+                            <AnimatedCatCharacter state={catAnimation} facing={catFacing} scale={2.0} />
                           </g>
                         )}
 
                         {/* Case C: Food is on this island */}
-                        {hasFood && (
-                          <g transform="translate(0, -90)">
-                            {/* Food Target Box */}
-                            <g className="animate-food-bounce">
-                              <rect
-                                x="-52"
-                                y="-24"
-                                width="104"
-                                height="42"
-                                rx="8"
-                                fill="#0B0A16"
-                                stroke="#facc15"
-                                strokeWidth="2.5"
-                                filter="url(#goldGlow)"
-                              />
-                              <text x="-22" y="5" fontSize="22">🍖</text>
-                              <text
-                                x="15"
-                                y="3"
-                                fill="#facc15"
-                                fontFamily="'Orbitron', sans-serif"
-                                fontSize="10"
-                                fontWeight="bold"
-                                textAnchor="middle"
-                              >
-                                TARGET
-                              </text>
-                              <polygon points="0,22 -8,14 8,14" fill="#facc15" />
-                            </g>
+                        {hasFood && !foodMotion?.inFlight && (
+                          <g transform="translate(0, -54)">
+                            <AnimatedFoodCharacter state={foodAnimation} scale={2.0} />
                           </g>
                         )}
                       </>
@@ -577,16 +684,42 @@ export default function RoadmapView({ onReturnToHall }) {
                 );
               })}
             </g>
+
+            {/* --- 4. IN-FLIGHT AERIAL MOTION LAYER (2X SCALE) --- */}
+            <g id="inFlightCharacters" className="pointer-events-none">
+              {/* In-Flight Cat Trajectory */}
+              {catMotion?.inFlight && (
+                <g transform={`translate(${catMotion.x}, ${catMotion.y - 56})`}>
+                  <AnimatedCatCharacter state="jumping" facing={catMotion.facing || catFacing} scale={2.0} />
+                </g>
+              )}
+
+              {/* In-Flight Food Trajectory */}
+              {foodMotion?.inFlight && (
+                <g transform={`translate(${foodMotion.x}, ${foodMotion.y - 54})`}>
+                  <AnimatedFoodCharacter state="leaping" scale={2.0} />
+                </g>
+              )}
+            </g>
           </svg>
         </div>
       </main>
 
       {/* ================================================================= */}
-      {/* 4. SAGE BYTERION WIZARD GUIDE (1-2 Line Explanations)             */}
+      {/* 4. SAGE BYTERION RIGHT-SIDE CODEX & SANCTUM                       */}
       {/* ================================================================= */}
       <WizardRoadmapGuide
         wizardState={wizardState}
+        activeMilestone={milestones.find((m) => m.id === state.activeMilestoneId) || milestones[0]}
+        nextMilestone={
+          milestones[milestones.findIndex((m) => m.id === state.activeMilestoneId) + 1] || null
+        }
+        state={state}
+        catAnimation={catAnimation}
+        onAdvance={advanceToNext}
         onDismiss={dismissWizard}
+        onCenterHero={scrollToActiveHero}
+        onReturnToObjective={returnToObjective}
       />
 
       {/* ================================================================= */}
@@ -594,10 +727,26 @@ export default function RoadmapView({ onReturnToHall }) {
       {/* ================================================================= */}
       {showCelebration && (
         <FinalCelebrationModal
+          milestones={milestones}
+          state={state}
           totalXp={state.totalXp}
           onReturnToHall={onReturnToHall}
           onResetJourney={resetProgress}
           onClose={() => setShowCelebration(false)}
+        />
+      )}
+
+      {/* ================================================================= */}
+      {/* 5B. SINGLE FRAME ROADMAP OVERVIEW MODAL (Toggled anytime)          */}
+      {/* ================================================================= */}
+      {showSingleFrameRoadmap && (
+        <SingleFrameRoadmap
+          milestones={milestones}
+          state={state}
+          totalXp={state.totalXp}
+          onReturnToHall={onReturnToHall}
+          onResetJourney={resetProgress}
+          onClose={() => setShowSingleFrameRoadmap(false)}
         />
       )}
 
@@ -613,7 +762,7 @@ export default function RoadmapView({ onReturnToHall }) {
         <div className="flex items-center gap-2">
           <span>TOUCH THE ACTIVE ISLAND TO ADVANCE CAT</span>
           <span>•</span>
-          <span className="text-green-400">● 12ms</span>
+          <span className="text-green-400">● READY</span>
         </div>
       </footer>
     </div>

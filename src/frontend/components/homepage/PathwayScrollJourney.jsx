@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { PATHWAYS_MAP } from '../../../data/pathways';
 
 export default function PathwayScrollJourney({
@@ -10,24 +10,25 @@ export default function PathwayScrollJourney({
   const [isExiting, setIsExiting] = useState(false);
   const path = PATHWAYS_MAP[currentPathId] || PATHWAYS_MAP.javascript;
 
-  const handleSafeClose = () => {
-    if (isExiting) return;
-    setIsExiting(true);
-    setTimeout(() => {
-      if (onClose) onClose();
-    }, 260);
-  };
+  // ISSUE-13: useCallback gives ESC handler a stable reference — no re-register on every isExiting change
+  const handleSafeClose = useCallback(() => {
+    setIsExiting((prev) => {
+      if (prev) return prev; // already closing
+      setTimeout(() => {
+        if (onClose) onClose();
+      }, 260);
+      return true;
+    });
+  }, [onClose]);
 
   // Close on Escape key press with exit animation
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if (e.key === 'Escape') {
-        handleSafeClose();
-      }
+      if (e.key === 'Escape') handleSafeClose();
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isExiting]);
+  }, [handleSafeClose]);
 
   // Scroll to top when switching scrolls
   useEffect(() => {
@@ -38,7 +39,12 @@ export default function PathwayScrollJourney({
   }, [currentPathId]);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-2 sm:p-4 overflow-y-auto select-none animate-in fade-in duration-200">
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="scroll-journey-title"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-2 sm:p-4 overflow-y-auto select-none animate-in fade-in duration-200"
+    >
       {/* Outer Ancient Scroll Container with Top and Bottom Wooden Rollers & Diamond Finials */}
       <div className="relative w-full max-w-2xl my-auto flex flex-col items-center">
         
@@ -79,7 +85,7 @@ export default function PathwayScrollJourney({
             
             {/* 1. Header Bar: Title & [ ESC X ] */}
             <div className="flex items-center justify-between pb-2 border-b border-[#B89B65]/70">
-              <div className="flex items-center gap-1.5 font-pixel text-[10px] sm:text-xs text-[#3E240D] tracking-wide font-bold">
+              <div id="scroll-journey-title" className="flex items-center gap-1.5 font-pixel text-[10px] sm:text-xs text-[#3E240D] tracking-wide font-bold">
                 <span>📄</span>
                 <span>✦ COURSE OVERVIEW // {path.id === 'javascript' ? 'JAVASCRIPT' : path.language.toUpperCase()} ✦</span>
               </div>

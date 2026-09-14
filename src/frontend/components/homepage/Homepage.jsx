@@ -1,34 +1,31 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import WizardMentor from './WizardMentor';
 import PathwayScrollJourney from './PathwayScrollJourney';
 import LearningRealmView from './LearningRealmView';
 import RoadmapView from '../roadmap/RoadmapView';
 import { PATHWAYS_DATA } from '../../../data/pathways';
+import { CELESTIAL_STARS } from '../../../data/stars';
 import { useWizardFlow } from '../../hooks/useWizardFlow';
 
-// --- CELESTIAL BACKGROUND STARS (20 Programmatic Stars) ---
-const CELESTIAL_STARS = [
-  { id: 1, top: '8%', left: '12%', size: 'w-1.5 h-1.5', color: 'bg-white', delay: '0s' },
-  { id: 2, top: '14%', left: '26%', size: 'w-2 h-2', color: 'bg-cyan-200', delay: '1.2s' },
-  { id: 3, top: '22%', left: '78%', size: 'w-1.5 h-1.5', color: 'bg-yellow-200', delay: '0.4s' },
-  { id: 4, top: '35%', left: '88%', size: 'w-2 h-2', color: 'bg-purple-300', delay: '2.1s' },
-  { id: 5, top: '42%', left: '6%', size: 'w-1.5 h-1.5', color: 'bg-cyan-100', delay: '1.7s' },
-  { id: 6, top: '55%', left: '18%', size: 'w-2.5 h-2.5', color: 'bg-white', delay: '0.8s' },
-  { id: 7, top: '68%', left: '82%', size: 'w-1.5 h-1.5', color: 'bg-yellow-300', delay: '2.5s' },
-  { id: 8, top: '75%', left: '34%', size: 'w-1.5 h-1.5', color: 'bg-white', delay: '1.1s' },
-  { id: 9, top: '85%', left: '65%', size: 'w-2 h-2', color: 'bg-cyan-300', delay: '0.3s' },
-  { id: 10, top: '12%', left: '50%', size: 'w-1.5 h-1.5', color: 'bg-purple-200', delay: '1.9s' },
-  { id: 11, top: '28%', left: '42%', size: 'w-1.5 h-1.5', color: 'bg-white', delay: '2.8s' },
-  { id: 12, top: '48%', left: '94%', size: 'w-2 h-2', color: 'bg-yellow-100', delay: '0.6s' },
-  { id: 13, top: '62%', left: '4%', size: 'w-2 h-2', color: 'bg-cyan-200', delay: '1.4s' },
-  { id: 14, top: '78%', left: '15%', size: 'w-1.5 h-1.5', color: 'bg-white', delay: '2.3s' },
-  { id: 15, top: '92%', left: '45%', size: 'w-1.5 h-1.5', color: 'bg-purple-300', delay: '0.9s' },
-  { id: 16, top: '5%', left: '92%', size: 'w-2 h-2', color: 'bg-white', delay: '1.5s' },
-  { id: 17, top: '38%', left: '62%', size: 'w-1.5 h-1.5', color: 'bg-cyan-300', delay: '2.7s' },
-  { id: 18, top: '52%', left: '48%', size: 'w-1.5 h-1.5', color: 'bg-yellow-200', delay: '1.8s' },
-  { id: 19, top: '88%', left: '90%', size: 'w-2.5 h-2.5', color: 'bg-white', delay: '0.2s' },
-  { id: 20, top: '65%', left: '70%', size: 'w-1.5 h-1.5', color: 'bg-purple-100', delay: '3.1s' }
-];
+const OVERWORLD_STORAGE_KEY = 'arq_js_overworld_map_v2';
+
+const loadPersistedOverworldStats = () => {
+  try {
+    const saved = localStorage.getItem(OVERWORLD_STORAGE_KEY);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      return {
+        totalXp: Number(parsed.totalXp) || 0,
+        gold: Number(parsed.gold) || 240,
+        completedCount: Array.isArray(parsed.completedMilestones) ? parsed.completedMilestones.length : 0
+      };
+    }
+  } catch (_) {}
+  return { totalXp: 0, gold: 240, completedCount: 0 };
+};
+
+// CELESTIAL_STARS imported from src/data/stars.js (ISSUE-12)
+
 
 const AnimatedBackground = () => (
   <div className="fixed inset-0 w-full h-full pointer-events-none z-0 bg-[#0B0A16] overflow-hidden">
@@ -82,27 +79,30 @@ const TopNavBar = ({ onLogout, user }) => {
           </button>
           <button
             disabled
+            aria-disabled="true"
             className="cursor-not-allowed opacity-50 hover:text-gray-400 transition-colors flex items-center gap-1 group relative"
             title="Locked: Terminal is sealed until Chapter 2"
           >
             <span>Terminal</span>
-            <span className="text-[10px] text-yellow-500/80 font-orbitron">[LOCKED]</span>
+            <span className="font-orbitron text-[10px] text-yellow-500 bg-yellow-950/30 px-1.5 rounded">[LOCKED]</span>
           </button>
           <button
             disabled
+            aria-disabled="true"
             className="cursor-not-allowed opacity-50 hover:text-gray-400 transition-colors flex items-center gap-1 group relative"
             title="Locked: Codex archives are currently being transcribed"
           >
             <span>Codex</span>
-            <span className="text-[10px] text-yellow-500/80 font-orbitron">[LOCKED]</span>
+            <span className="font-orbitron text-[10px] text-yellow-500 bg-yellow-950/30 px-1.5 rounded">[LOCKED]</span>
           </button>
           <button
             disabled
+            aria-disabled="true"
             className="cursor-not-allowed opacity-50 hover:text-gray-400 transition-colors flex items-center gap-1 group relative"
             title="Locked: Guild hall opens at Level 5"
           >
             <span>Guild</span>
-            <span className="text-[10px] text-yellow-500/80 font-orbitron">[LOCKED]</span>
+            <span className="font-orbitron text-[10px] text-yellow-500 bg-yellow-950/30 px-1.5 rounded">[LOCKED]</span>
           </button>
         </nav>
 
@@ -149,15 +149,15 @@ const TopNavBar = ({ onLogout, user }) => {
             </button>
             <div className="flex items-center justify-between px-2 py-1 text-gray-500">
               <span>Terminal</span>
-              <span className="text-xs font-orbitron text-yellow-600">[LOCKED]</span>
+              <span className="font-orbitron text-[10px] text-yellow-500 bg-yellow-950/30 px-1.5 rounded">[LOCKED]</span>
             </div>
             <div className="flex items-center justify-between px-2 py-1 text-gray-500">
               <span>Codex</span>
-              <span className="text-xs font-orbitron text-yellow-600">[LOCKED]</span>
+              <span className="font-orbitron text-[10px] text-yellow-500 bg-yellow-950/30 px-1.5 rounded">[LOCKED]</span>
             </div>
             <div className="flex items-center justify-between px-2 py-1 text-gray-500">
               <span>Guild</span>
-              <span className="text-xs font-orbitron text-yellow-600">[LOCKED]</span>
+              <span className="font-orbitron text-[10px] text-yellow-500 bg-yellow-950/30 px-1.5 rounded">[LOCKED]</span>
             </div>
             {onLogout && (
               <button
@@ -200,7 +200,7 @@ const HeroCard = ({ user }) => {
         </div>
 
         <div className="bg-[#0B0A16] border border-[#2A264F] p-2 pixel-corners-sm">
-          <div className="flex justify-between font-vt323 text-xs mb-1">
+          <div className="flex flex-wrap justify-between gap-y-1 font-vt323 text-xs mb-1">
             <span className="text-gray-300">
               EXP: <span className="text-cyan-300 font-bold">{currentXp} / {nextLevelXp} XP</span> ({xpPercentage}%)
             </span>
@@ -225,6 +225,8 @@ export default function Homepage({ onLogout, user = null }) {
   const [hoveredDoor, setHoveredDoor] = useState(null);
   const [confirmedRealm, setConfirmedRealm] = useState(null);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [overworldStats, setOverworldStats] = useState(loadPersistedOverworldStats);
+  const transitionTimerRef = useRef(null);
 
   // Hook-managed Sage Byterion state machine
   const {
@@ -237,15 +239,41 @@ export default function Homepage({ onLogout, user = null }) {
     onReturnToHall
   } = useWizardFlow();
 
-  // Active user data with fallbacks
-  const activeUser = user || {
-    name: 'Novice Coder',
-    level: 1,
-    archetype: 'Code Neophyte',
-    currentXp: 180,
-    nextLevelXp: 300,
-    hp: 100,
-    gold: 240
+  // Re-read progress whenever navigating back to Great Hall
+  useEffect(() => {
+    if (!confirmedRealm) {
+      setOverworldStats(loadPersistedOverworldStats());
+    }
+  }, [confirmedRealm]);
+
+  // Clean up transition timer on unmount
+  useEffect(() => {
+    return () => {
+      if (transitionTimerRef.current) {
+        clearTimeout(transitionTimerRef.current);
+      }
+    };
+  }, []);
+
+  // Compute dynamic active user data by fusing base user props with Overworld progress
+  const baseHp = user?.hp ?? 100;
+  const baseGold = user?.gold ? user.gold + (overworldStats.gold - 240) : overworldStats.gold;
+  const totalEarnedXp = (user?.currentXp ?? 180) + overworldStats.totalXp;
+  
+  // Level curve: Level 1 = 0-299, Level 2 = 300-599, Level 3 = 600-899, Level 4 = 900-1199, Level 5+ = 1200+
+  const calculatedLevel = Math.max(1, Math.floor(totalEarnedXp / 300) + 1);
+  const currentLevelBaseXp = (calculatedLevel - 1) * 300;
+  const currentLevelProgressXp = totalEarnedXp - currentLevelBaseXp;
+  const neededXpForNext = 300;
+
+  const activeUser = {
+    name: user?.name ?? 'Novice Coder',
+    level: user?.level ? Math.max(user.level, calculatedLevel) : calculatedLevel,
+    archetype: user?.archetype ?? (calculatedLevel >= 5 ? 'JavaScript Sorcerer' : calculatedLevel >= 3 ? 'Code Adept' : 'Code Neophyte'),
+    currentXp: currentLevelProgressXp,
+    nextLevelXp: neededXpForNext,
+    hp: baseHp,
+    gold: baseGold
   };
 
   // Door hover handlers
@@ -272,7 +300,11 @@ export default function Homepage({ onLogout, user = null }) {
     setIsTransitioning(true);
     onConfirmPathStart();
 
-    setTimeout(() => {
+    if (transitionTimerRef.current) {
+      clearTimeout(transitionTimerRef.current);
+    }
+
+    transitionTimerRef.current = setTimeout(() => {
       setIsTransitioning(false);
       setConfirmedRealm(path);
     }, 2200);
@@ -364,6 +396,7 @@ export default function Homepage({ onLogout, user = null }) {
                 >
                   {/* Gigantic Standalone Portal Door with Per-Door Custom Color Glow */}
                   <div className="relative w-26 h-38 sm:w-36 sm:h-52 md:w-44 md:h-64 xl:w-52 xl:h-76 flex items-center justify-center">
+                    {/* Portal Door Image */}
                     <img
                       src={path.doorImage}
                       alt={`${path.language} Gigantic Portal Door`}
@@ -393,10 +426,32 @@ export default function Homepage({ onLogout, user = null }) {
                       REALM: <span className="text-cyan-400 font-bold">{path.language}</span>
                     </span>
 
+                    {/* ISSUE-03: ACTIVE REALM badge moved here — below the door label, not above door image */}
+                    {!isLocked && path.id === 'javascript' && (
+                      <div className="mt-1 font-orbitron text-[9px] font-black bg-gradient-to-r from-amber-500 to-yellow-400 text-black px-2 py-0.5 rounded-full shadow-[0_0_12px_rgba(250,204,21,0.8)] border border-yellow-200 animate-pulse tracking-wider">
+                        ✦ ACTIVE REALM ✦
+                      </div>
+                    )}
+
                     {/* Styled Action Cue */}
-                    <div className="mt-1 font-vt323 text-xs py-1 px-2.5 sm:px-3 bg-[#0B0A16]/90 border border-gray-700 text-gray-300 rounded pixel-corners-sm group-hover:bg-[#F59E0B] group-hover:text-black group-hover:border-[#FDE68A] group-hover:shadow-[0_0_12px_rgba(245,158,11,0.8)] transition-all">
-                      <span className="sm:hidden">[ENTER]</span>
-                      <span className="hidden sm:inline">[ 📜 UNROLL SCROLL ]</span>
+                    <div className={`mt-1 font-vt323 text-xs py-1 px-2.5 sm:px-3 bg-[#0B0A16]/90 border text-gray-300 rounded pixel-corners-sm transition-all ${
+                      isLocked
+                        ? 'border-gray-800 opacity-70'
+                        : path.id === 'javascript'
+                        ? 'border-yellow-500/60 group-hover:bg-gradient-to-r group-hover:from-yellow-400 group-hover:to-amber-500 group-hover:text-black group-hover:border-yellow-200 group-hover:shadow-[0_0_16px_rgba(250,204,21,0.9)]'
+                        : 'border-gray-700 group-hover:bg-gray-800'
+                    }`}>
+                      {isLocked ? (
+                        <>
+                          <span className="sm:hidden">🔒 SEALED</span>
+                          <span className="hidden sm:inline">[ 🔒 SEALED ]</span>
+                        </>
+                      ) : (
+                        <>
+                          <span className="sm:hidden">[ENTER]</span>
+                          <span className="hidden sm:inline">[ 📜 UNROLL SCROLL ]</span>
+                        </>
+                      )}
                     </div>
                   </div>
                 </div>

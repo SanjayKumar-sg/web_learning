@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 // Pool of rich atmospheric wisdom quotes cycled on user clicks
 const SAGE_WISDOM_POOL = [
@@ -108,28 +108,30 @@ export default function WizardMentor({
   }, [doorHovered, actionState, customDialogue, isTransitioning, wisdomClickIndex]);
 
   // Smooth typewriter/text reveal effect with fade transition
+  // ISSUE-14: useRef for interval ID prevents fragile shared-closure pattern
+  const intervalRef = useRef(null);
+
   useEffect(() => {
     setIsBubbleVisible(false);
-    let interval = null;
 
     const fadeTimer = setTimeout(() => {
       setIsBubbleVisible(true);
       setDisplayedText('');
       let index = 0;
 
-      interval = setInterval(() => {
+      intervalRef.current = setInterval(() => {
         index++;
         if (index <= currentLine.length) {
           setDisplayedText(currentLine.slice(0, index));
         } else {
-          clearInterval(interval);
+          clearInterval(intervalRef.current);
         }
       }, 24);
     }, 120);
 
     return () => {
       clearTimeout(fadeTimer);
-      if (interval) clearInterval(interval);
+      if (intervalRef.current) clearInterval(intervalRef.current);
     };
   }, [currentLine]);
 
@@ -158,8 +160,11 @@ export default function WizardMentor({
           {displayedText ? `"${displayedText}"` : ''}
         </p>
 
-        {/* Speech Bubble Tail Arrow pointing down towards wizard */}
-        <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[8px] border-t-purple-400/80"></div>
+        {/* ISSUE-19: Speech Bubble Tail — layered triangles for solid filled pointer */}
+        {/* Outer border triangle */}
+        <div className="absolute -bottom-2.5 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[7px] border-l-transparent border-r-[7px] border-r-transparent border-t-[9px] border-t-purple-400/80"></div>
+        {/* Inner fill triangle (matches bubble bg) */}
+        <div className="absolute -bottom-[7px] left-1/2 -translate-x-1/2 w-0 h-0 border-l-[5px] border-l-transparent border-r-[5px] border-r-transparent border-t-[7px] border-t-[#151326]"></div>
       </div>
 
       {/* Wizard Sprite Container with Magical Aura Dais - Clickable */}
