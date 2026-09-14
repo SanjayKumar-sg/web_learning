@@ -24,7 +24,7 @@ export default function WizardRoadmapGuide({ wizardState, onDismiss }) {
         <div className="flex-1 space-y-1">
           <div className="flex items-center justify-between border-b border-purple-900/60 pb-1">
             <span className="font-orbitron text-[10px] sm:text-xs font-bold text-yellow-400 tracking-wider">
-              SAGE BYTERION // ROADMAP GUIDE
+              {wizardState.title || 'SAGE BYTERION // ROADMAP GUIDE'}
             </span>
             <button
               onClick={onDismiss}

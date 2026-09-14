@@ -1,10 +1,9 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { ROADMAP_MILESTONES, INITIAL_ROADMAP_STATE } from '../../data/roadmapData';
+import { ROADMAP_MILESTONES, INITIAL_OVERWORLD_STATE } from '../../data/roadmapData';
 
-const STORAGE_KEY = 'arq_js_roadmap_progress_v1';
+const STORAGE_KEY = 'arq_js_overworld_map_v2';
 
 export function useRoadmapEngine() {
-  // Load saved state or default
   const [state, setState] = useState(() => {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
@@ -12,206 +11,189 @@ export function useRoadmapEngine() {
         const parsed = JSON.parse(saved);
         if (parsed && Array.isArray(parsed.completedMilestones)) {
           return {
-            ...INITIAL_ROADMAP_STATE,
+            ...INITIAL_OVERWORLD_STATE,
             ...parsed,
-            isAnimating: false // never restore in stuck animation
+            isAnimating: false
           };
         }
       }
     } catch (e) {
       console.error('Error loading roadmap progress:', e);
     }
-    return INITIAL_ROADMAP_STATE;
+    return INITIAL_OVERWORLD_STATE;
   });
 
-  // Transient interactive state
-  const [activeModalMilestone, setActiveModalMilestone] = useState(null);
-  const [catState, setCatState] = useState('idle'); // 'idle' | 'moving' | 'celebrating' | 'waiting' | 'finale'
-  const [foodState, setFoodState] = useState('waiting'); // 'waiting' | 'target' | 'escaping' | 'finalTarget' | 'consumed'
-  const [wizardState, setWizardState] = useState({
-    visible: true,
-    milestoneId: 'html',
-    message: ROADMAP_MILESTONES[0].wizardMessage
-  });
+  // Cat & Food motion states
+  const [catAnimation, setCatAnimation] = useState('idle'); // 'idle' | 'jumping' | 'celebrating' | 'finale'
+  const [foodAnimation, setFoodAnimation] = useState('idle'); // 'idle' | 'leaping' | 'joined'
   const [showCelebration, setShowCelebration] = useState(false);
 
-  // Animation lock ref
+  // Wizard state: Initial welcome prompt or milestone explanation
+  const [wizardState, setWizardState] = useState(() => {
+    return {
+      visible: true,
+      title: 'SAGE BYTERION // ROADMAP GUIDE',
+      message: 'Help the cat catch the food! Touch the HTML island to begin your journey.'
+    };
+  });
+
   const animLockRef = useRef(false);
 
-  // Synchronize state to localStorage
+  // Save to localStorage
   useEffect(() => {
     try {
       const persistable = {
-        currentMilestoneId: state.currentMilestoneId,
-        completedMilestones: state.completedMilestones,
-        unlockedMilestones: state.unlockedMilestones,
         catPositionId: state.catPositionId,
         foodPositionId: state.foodPositionId,
+        completedMilestones: state.completedMilestones,
+        activeMilestoneId: state.activeMilestoneId,
         totalXp: state.totalXp,
+        gold: state.gold,
         isFinished: state.isFinished
       };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(persistable));
     } catch (e) {
-      console.warn('Could not save roadmap progress to localStorage:', e);
+      console.warn('LocalStorage save error:', e);
     }
   }, [state]);
 
-  // Derived progress calculations
-  const totalMilestones = ROADMAP_MILESTONES.length;
   const completedCount = state.completedMilestones.length;
+  const totalMilestones = ROADMAP_MILESTONES.length;
   const progressPercent = Math.min(100, Math.round((completedCount / totalMilestones) * 100));
 
-  // Determine current active milestone object
-  const currentMilestoneIndex = ROADMAP_MILESTONES.findIndex((m) => m.id === state.currentMilestoneId);
-  const currentMilestone = currentMilestoneIndex >= 0 ? ROADMAP_MILESTONES[currentMilestoneIndex] : ROADMAP_MILESTONES[0];
-
-  // Open milestone modal (only for unlocked/completed milestones)
-  const openMilestoneModal = useCallback((milestone) => {
-    if (animLockRef.current) return;
-    const isUnlocked = state.unlockedMilestones.includes(milestone.id);
-    if (!isUnlocked) return; // Ignore clicks on locked milestones
-    setActiveModalMilestone(milestone);
-  }, [state.unlockedMilestones]);
-
-  const closeMilestoneModal = useCallback(() => {
-    setActiveModalMilestone(null);
-  }, []);
-
-  // Dismiss Wizard guide bubble
+  // Dismiss wizard speech bubble
   const dismissWizard = useCallback(() => {
     setWizardState((prev) => ({ ...prev, visible: false }));
   }, []);
 
-  // Show Wizard guide for specific milestone
-  const showWizardForMilestone = useCallback((milestoneId) => {
-    const ms = ROADMAP_MILESTONES.find((m) => m.id === milestoneId);
-    if (ms) {
-      setWizardState({
-        visible: true,
-        milestoneId: ms.id,
-        message: ms.wizardMessage
-      });
-    }
-  }, []);
-
-  // Complete milestone and trigger the Cat chasing Food sequence
-  const completeMilestone = useCallback((milestoneId) => {
+  // Main interaction: User touches an island
+  const touchIsland = useCallback((milestone) => {
     if (animLockRef.current) return;
-    const currentIndex = ROADMAP_MILESTONES.findIndex((m) => m.id === milestoneId);
+
+    const currentIndex = ROADMAP_MILESTONES.findIndex((m) => m.id === milestone.id);
     if (currentIndex === -1) return;
 
-    const milestone = ROADMAP_MILESTONES[currentIndex];
-    const isAlreadyCompleted = state.completedMilestones.includes(milestoneId);
+    // Is this the currently active objective?
+    const isActiveTarget = state.activeMilestoneId === milestone.id;
+    const isAlreadyCompleted = state.completedMilestones.includes(milestone.id);
+
+    // If clicking an already completed milestone, wizard simply reviews it
+    if (isAlreadyCompleted) {
+      setWizardState({
+        visible: true,
+        title: `SAGE BYTERION // ${milestone.title.toUpperCase()}`,
+        message: milestone.wizardDialogue
+      });
+      return;
+    }
+
+    // If clicking a locked future milestone, wizard gives guidance
+    if (!isActiveTarget) {
+      const activeObj = ROADMAP_MILESTONES.find((m) => m.id === state.activeMilestoneId);
+      setWizardState({
+        visible: true,
+        title: 'SAGE BYTERION // GUIDANCE',
+        message: `The food is currently waiting on ${activeObj?.title || 'the next island'}. Touch that island to guide the cat!`
+      });
+      return;
+    }
+
+    // --- EXECUTE THE EXACT CAT & FOOD LEAP SEQUENCE ---
+    animLockRef.current = true;
+    setCatAnimation('jumping');
+
     const isFinalMilestone = milestone.isFinal || currentIndex === ROADMAP_MILESTONES.length - 1;
 
-    // Close the challenge modal immediately
-    setActiveModalMilestone(null);
-
-    // If re-completing already completed node, no animation loop needed
-    if (isAlreadyCompleted) return;
-
-    // Lock interaction during animation sequence
-    animLockRef.current = true;
-    setState((prev) => ({ ...prev, isAnimating: true }));
-
     if (isFinalMilestone) {
-      // --- FINAL MILESTONE SPECIAL SEQUENCE ---
-      // Food does NOT escape! Cat reaches food -> Fusion -> Celebration
-      setCatState('moving');
-      setFoodState('finalTarget');
-
+      // Final Milestone: Cat catches food!
       setTimeout(() => {
-        // Cat reaches food
-        setCatState('finale');
-        setFoodState('consumed');
+        setCatAnimation('finale');
+        setFoodAnimation('joined');
 
         setState((prev) => ({
           ...prev,
-          completedMilestones: Array.from(new Set([...prev.completedMilestones, milestoneId])),
-          catPositionId: milestoneId,
-          foodPositionId: milestoneId,
+          catPositionId: milestone.id,
+          foodPositionId: milestone.id,
+          completedMilestones: Array.from(new Set([...prev.completedMilestones, milestone.id])),
           totalXp: prev.totalXp + milestone.xp,
-          isFinished: true,
-          isAnimating: false
+          gold: prev.gold + 100,
+          isFinished: true
         }));
 
-        // Trigger celebratory fanfare
+        setWizardState({
+          visible: true,
+          title: 'SAGE BYTERION // MASTER CODER',
+          message: milestone.wizardDialogue
+        });
+
         setTimeout(() => {
           setShowCelebration(true);
           animLockRef.current = false;
-        }, 800);
-      }, 900);
+        }, 900);
+      }, 700);
     } else {
-      // --- STANDARD MILESTONE TRANSITION LOOP ---
+      // Standard Milestone: Food leaps to next island, Cat lands on current island
       const nextIndex = currentIndex + 1;
       const nextMilestone = ROADMAP_MILESTONES[nextIndex];
-      const nextMilestoneId = nextMilestone.id;
 
-      // 1. Food begins escaping towards next milestone, Cat moves toward completed milestone
-      setFoodState('escaping');
-      setCatState('moving');
+      setFoodAnimation('leaping');
 
-      // 2. Cat arrives at current milestone, Food settles at next milestone
       setTimeout(() => {
-        setCatState('celebrating');
-        setFoodState('target');
+        setCatAnimation('celebrating');
+        setFoodAnimation('idle');
 
         setState((prev) => ({
           ...prev,
-          completedMilestones: Array.from(new Set([...prev.completedMilestones, milestoneId])),
-          unlockedMilestones: Array.from(new Set([...prev.unlockedMilestones, nextMilestoneId])),
-          currentMilestoneId: nextMilestoneId,
-          catPositionId: milestoneId,
-          foodPositionId: nextMilestoneId,
+          catPositionId: milestone.id,
+          foodPositionId: nextMilestone.id,
+          activeMilestoneId: nextMilestone.id,
+          completedMilestones: Array.from(new Set([...prev.completedMilestones, milestone.id])),
           totalXp: prev.totalXp + milestone.xp,
-          isAnimating: false
+          gold: prev.gold + 50
         }));
 
-        // 3. Reveal Wizard 1-2 line speech bubble for the newly unlocked objective
-        showWizardForMilestone(nextMilestoneId);
+        // Wizard returns and explains 1-2 lines about the milestone just reached!
+        setWizardState({
+          visible: true,
+          title: `SAGE BYTERION // ${milestone.title.toUpperCase()}`,
+          message: milestone.wizardDialogue
+        });
 
-        // 4. Return Cat to idle after celebratory bounce
         setTimeout(() => {
-          setCatState('idle');
+          setCatAnimation('idle');
           animLockRef.current = false;
-        }, 1100);
-      }, 850);
+        }, 800);
+      }, 650);
     }
-  }, [state.completedMilestones, showWizardForMilestone]);
+  }, [state.activeMilestoneId, state.completedMilestones]);
 
-  // Reset progress cleanly (for testing and replayability)
+  // Reset Progress cleanly
   const resetProgress = useCallback(() => {
     localStorage.removeItem(STORAGE_KEY);
     animLockRef.current = false;
-    setState(INITIAL_ROADMAP_STATE);
-    setCatState('idle');
-    setFoodState('waiting');
+    setState(INITIAL_OVERWORLD_STATE);
+    setCatAnimation('idle');
+    setFoodAnimation('idle');
     setShowCelebration(false);
-    setActiveModalMilestone(null);
     setWizardState({
       visible: true,
-      milestoneId: 'html',
-      message: ROADMAP_MILESTONES[0].wizardMessage
+      title: 'SAGE BYTERION // ROADMAP GUIDE',
+      message: 'Help the cat catch the food! Touch the HTML island to begin your journey.'
     });
   }, []);
 
   return {
     state,
     milestones: ROADMAP_MILESTONES,
-    currentMilestone,
     completedCount,
     totalMilestones,
     progressPercent,
-    catState,
-    foodState,
+    catAnimation,
+    foodAnimation,
     wizardState,
-    activeModalMilestone,
     showCelebration,
-    openMilestoneModal,
-    closeMilestoneModal,
-    completeMilestone,
+    touchIsland,
     dismissWizard,
-    showWizardForMilestone,
     resetProgress,
     setShowCelebration
   };
