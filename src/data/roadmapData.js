@@ -81,7 +81,8 @@ export const ROADMAP_MILESTONES = [
     xp: 60,
     chapterGoalId: 'js-basics',
     isChasePoint: false,
-    wizardDialogue: 'Every webpage needs a structure.\nHTML gives us that foundation.'
+    wizardDialogue: 'Every webpage needs a structure.\nHTML gives us that foundation.',
+    concepts: ['HTML Document Structure', 'Semantic Tags (<main>, <nav>)', 'Forms, Inputs & Buttons', 'Head Metadata & SEO']
   },
   {
     id: 'css',
@@ -98,7 +99,8 @@ export const ROADMAP_MILESTONES = [
     xp: 60,
     chapterGoalId: 'js-basics',
     isChasePoint: false,
-    wizardDialogue: 'Our structure is ready.\nNow CSS helps us control how everything looks.'
+    wizardDialogue: 'Our structure is ready.\nNow CSS helps us control how everything looks.',
+    concepts: ['Box Model (Margin, Padding)', 'Flexbox & CSS Grid Alignment', 'Colors, Typography & Shadows', 'Responsive Media Queries']
   },
   {
     id: 'js-basics',
@@ -116,7 +118,8 @@ export const ROADMAP_MILESTONES = [
     chapterGoalId: 'js-basics',
     isChasePoint: true,
     chaseNextGoalId: 'es6',
-    wizardDialogue: "The page looks good, but it doesn't do much yet.\nJavaScript gives it behaviour."
+    wizardDialogue: "The page looks good, but it doesn't do much yet.\nJavaScript gives it behaviour.",
+    concepts: ['Variables (let & const)', 'Data Types & Operators', 'Functions & Return Values', 'Conditionals & Loops']
   },
 
   // =========================================================================
@@ -137,7 +140,8 @@ export const ROADMAP_MILESTONES = [
     xp: 75,
     chapterGoalId: 'es6',
     isChasePoint: false,
-    wizardDialogue: 'JavaScript needs a way to interact with the webpage.\nThe DOM gives it that connection.'
+    wizardDialogue: 'JavaScript needs a way to interact with the webpage.\nThe DOM gives it that connection.',
+    concepts: ['Selecting Elements (querySelector)', 'Updating HTML & Text Content', 'Creating & Appending Elements', 'Managing CSS ClassLists']
   },
   {
     id: 'events',
@@ -154,7 +158,8 @@ export const ROADMAP_MILESTONES = [
     xp: 75,
     chapterGoalId: 'es6',
     isChasePoint: false,
-    wizardDialogue: 'Now the page can listen for user actions.\nClicks, typing, and other actions become events.'
+    wizardDialogue: 'Now the page can listen for user actions.\nClicks, typing, and other actions become events.',
+    concepts: ['Click & Key Event Listeners', 'Form Submission & Validation', 'Event Bubbling & Propagation', 'Preventing Default Actions']
   },
   {
     id: 'es6',
@@ -172,7 +177,8 @@ export const ROADMAP_MILESTONES = [
     chapterGoalId: 'es6',
     isChasePoint: true,
     chaseNextGoalId: 'json',
-    wizardDialogue: 'Modern JavaScript gives us cleaner, more powerful syntax.\nWriting code becomes much simpler.'
+    wizardDialogue: 'Modern JavaScript gives us cleaner, more powerful syntax.\nWriting code becomes much simpler.',
+    concepts: ['Arrow Functions & Scope', 'Destructuring Objects & Arrays', 'Template Literals & Strings', 'Spread & Rest Operators']
   },
 
   // =========================================================================
@@ -193,7 +199,8 @@ export const ROADMAP_MILESTONES = [
     xp: 85,
     chapterGoalId: 'json',
     isChasePoint: false,
-    wizardDialogue: 'Some tasks take time.\nAsync JavaScript helps us handle them without blocking everything.'
+    wizardDialogue: 'Some tasks take time.\nAsync JavaScript helps us handle them without blocking everything.',
+    concepts: ['Synchronous vs Asynchronous Flow', 'Promises & Resolve/Reject', 'Async / Await Syntax', 'Error Handling with try/catch']
   },
   {
     id: 'fetch',
@@ -210,7 +217,8 @@ export const ROADMAP_MILESTONES = [
     xp: 85,
     chapterGoalId: 'json',
     isChasePoint: false,
-    wizardDialogue: 'Now our app can talk to the outside world.\nFetch helps us request data from servers.'
+    wizardDialogue: 'Now our app can talk to the outside world.\nFetch helps us request data from servers.',
+    concepts: ['HTTP GET & POST Methods', 'Fetching Remote Data', 'Request & Response Headers', 'Handling HTTP Status Codes']
   },
   {
     id: 'json',
@@ -228,7 +236,8 @@ export const ROADMAP_MILESTONES = [
     chapterGoalId: 'json',
     isChasePoint: true,
     chaseNextGoalId: 'express',
-    wizardDialogue: 'Servers and browsers need a shared language.\nJSON lets them exchange data easily.'
+    wizardDialogue: 'Servers and browsers need a shared language.\nJSON lets them exchange data easily.',
+    concepts: ['JSON Syntax Rules', 'JSON.parse() & JSON.stringify()', 'Working with Nested Data', 'Exchanging Data with APIs']
   },
 
   // =========================================================================
@@ -249,7 +258,8 @@ export const ROADMAP_MILESTONES = [
     xp: 90,
     chapterGoalId: 'express',
     isChasePoint: false,
-    wizardDialogue: 'So far, JavaScript has lived in the browser.\nNow we take JavaScript to the server.'
+    wizardDialogue: 'So far, JavaScript has lived in the browser.\nNow we take JavaScript to the server.',
+    concepts: ['Node.js Runtime Environment', 'Running Scripts on the Server', 'Core Modules (fs, path, http)', 'Event-Driven Architecture']
   },
   {
     id: 'npm',
@@ -266,7 +276,8 @@ export const ROADMAP_MILESTONES = [
     xp: 80,
     chapterGoalId: 'express',
     isChasePoint: false,
-    wizardDialogue: "We don't need to write everything from scratch.\nnpm gives us a world of ready-made packages."
+    wizardDialogue: "We don't need to write everything from scratch.\nnpm gives us a world of ready-made packages.",
+    concepts: ['npm Package Ecosystem', 'package.json & Dependencies', 'Installing & Updating Packages', 'Running Custom npm Scripts']
   },
   {
     id: 'express',
@@ -284,7 +295,8 @@ export const ROADMAP_MILESTONES = [
     chapterGoalId: 'express',
     isChasePoint: true,
     chaseNextGoalId: 'auth',
-    wizardDialogue: 'Building a server by hand is slow.\nExpress helps us set up routes and logic with ease.'
+    wizardDialogue: 'Building a server by hand is slow.\nExpress helps us set up routes and logic with ease.',
+    concepts: ['Setting Up an Express Server', 'Routing GET & POST Endpoints', 'Middleware Functions', 'Request & Response Handling']
   },
 
   // =========================================================================
@@ -305,7 +317,8 @@ export const ROADMAP_MILESTONES = [
     xp: 100,
     chapterGoalId: 'auth',
     isChasePoint: false,
-    wizardDialogue: 'Our frontend and backend need clear rules to talk.\nREST APIs give them a standard structure.'
+    wizardDialogue: 'Our frontend and backend need clear rules to talk.\nREST APIs give them a standard structure.',
+    concepts: ['RESTful Architecture Rules', 'CRUD Operations (Create/Read/Update/Delete)', 'HTTP Status Codes', 'API Route Organization']
   },
   {
     id: 'database',
@@ -322,7 +335,8 @@ export const ROADMAP_MILESTONES = [
     xp: 110,
     chapterGoalId: 'auth',
     isChasePoint: false,
-    wizardDialogue: 'Our app needs a memory.\nThe database stores the information it needs.'
+    wizardDialogue: 'Our app needs a memory.\nThe database stores the information it needs.',
+    concepts: ['Databases & Persistent Storage', 'Connecting Server to Database', 'CRUD Queries & Data Models', 'Data Validation & Integrity']
   },
   {
     id: 'auth',
@@ -340,7 +354,8 @@ export const ROADMAP_MILESTONES = [
     chapterGoalId: 'auth',
     isChasePoint: true,
     chaseNextGoalId: 'backend-project',
-    wizardDialogue: 'Not everyone should access everything.\nAuthentication helps the app know who is allowed in.'
+    wizardDialogue: 'Not everyone should access everything.\nAuthentication helps the app know who is allowed in.',
+    concepts: ['User Registration & Login', 'Password Hashing & Security', 'JWT (JSON Web Tokens)', 'Protecting Private Server Routes']
   },
 
   // =========================================================================
@@ -362,7 +377,8 @@ export const ROADMAP_MILESTONES = [
     isFinal: true,
     chapterGoalId: 'backend-project',
     isChasePoint: false,
-    wizardDialogue: "You've reached the final stage.\nNow all the pieces come together in a real application."
+    wizardDialogue: "You've reached the final stage.\nNow all the pieces come together in a real application.",
+    concepts: ['Full-Stack System Architecture', 'REST API Integration', 'Database & Auth Implementation', 'Deployment & Production Polish']
   }
 ];
 

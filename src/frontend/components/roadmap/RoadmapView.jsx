@@ -5,11 +5,9 @@ import FinalCelebrationModal from './FinalCelebrationModal';
 import SingleFrameRoadmap from './SingleFrameRoadmap';
 import AnimatedCatCharacter from './characters/AnimatedCatCharacter';
 import AnimatedFoodCharacter from './characters/AnimatedFoodCharacter';
-import MilestoneExplainPanel from './MilestoneExplainPanel';
 
 export default function RoadmapView({ onReturnToHall }) {
   const [showSingleFrameRoadmap, setShowSingleFrameRoadmap] = useState(false);
-  const [explainMilestone, setExplainMilestone] = useState(null);
   const {
     state,
     milestones,
@@ -467,15 +465,11 @@ export default function RoadmapView({ onReturnToHall }) {
                     role="button"
                     tabIndex={0}
                     aria-label={`Milestone ${String(ms.order).padStart(2, '0')}: ${ms.title}. ${isCompleted ? 'Mastered' : isActiveObjective ? 'Active target' : isFoodIsland ? 'Chapter goal' : 'Locked'}`}
-                    onClick={() => {
-                      touchIsland(ms);
-                      setExplainMilestone(ms);
-                    }}
+                    onClick={() => touchIsland(ms)}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter' || e.key === ' ') {
                         e.preventDefault();
                         touchIsland(ms);
-                        setExplainMilestone(ms);
                       }
                     }}
                     className="cursor-pointer group outline-none focus:outline-none"
@@ -517,7 +511,6 @@ export default function RoadmapView({ onReturnToHall }) {
                         onClick={(e) => {
                           e.stopPropagation();
                           touchIsland(ms);
-                          setExplainMilestone(ms);
                         }}
                         role="button"
                         tabIndex={0}
@@ -739,7 +732,11 @@ export default function RoadmapView({ onReturnToHall }) {
       {/* ================================================================= */}
       <WizardRoadmapGuide
         wizardState={wizardState}
-        activeMilestone={milestones.find((m) => m.id === state.activeMilestoneId) || milestones[0]}
+        activeMilestone={
+          milestones.find(
+            (m) => m.id === (wizardState?.inspectedMilestoneId || wizardState?.recapMilestoneId)
+          ) || activeMilestone
+        }
         nextMilestone={
           milestones[milestones.findIndex((m) => m.id === state.activeMilestoneId) + 1] || null
         }
@@ -794,16 +791,6 @@ export default function RoadmapView({ onReturnToHall }) {
           <span className="text-green-400">● READY</span>
         </div>
       </footer>
-
-      {/* ================================================================= */}
-      {/* 7. MILESTONE EXPLANATION PANEL (slides in from right on click)    */}
-      {/* ================================================================= */}
-      {explainMilestone && (
-        <MilestoneExplainPanel
-          milestone={explainMilestone}
-          onClose={() => setExplainMilestone(null)}
-        />
-      )}
     </div>
   );
 }

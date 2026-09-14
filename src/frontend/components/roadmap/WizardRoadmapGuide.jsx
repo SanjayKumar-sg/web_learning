@@ -159,6 +159,27 @@ export default function WizardRoadmapGuide({
             "{wizardState.message}"
           </div>
 
+          {/* Concepts you will learn in this milestone */}
+          {activeMilestone?.concepts && activeMilestone.concepts.length > 0 && (
+            <div className="pt-1">
+              <div className="font-orbitron text-[10px] sm:text-xs font-bold text-cyan-300 tracking-wider flex items-center gap-1.5 mb-1.5">
+                <span className="text-yellow-400">⚡</span>
+                <span>CONCEPTS YOU'LL LEARN:</span>
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {activeMilestone.concepts.map((concept, idx) => (
+                  <span
+                    key={idx}
+                    className="font-vt323 text-xs sm:text-sm px-2.5 py-0.5 rounded bg-purple-950/90 border border-purple-500/50 text-yellow-200/90 shadow-sm flex items-center gap-1"
+                  >
+                    <span className="text-cyan-400 text-[10px]">◆</span>
+                    <span>{concept}</span>
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Quick Progression Footer Buttons */}
           <div className="pt-2 flex items-center justify-between gap-3 border-t border-purple-900/60">
             {onCenterHero && (

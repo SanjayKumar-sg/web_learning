@@ -538,6 +538,23 @@ export default function SingleFrameRoadmap({
                 <p className="font-vt323 text-sm sm:text-base text-yellow-100 leading-snug whitespace-pre-line">
                   "{activeMilestoneDetail.wizardDialogue || 'The journey continues forward through the web realm.'}"
                 </p>
+
+                {activeMilestoneDetail?.concepts && activeMilestoneDetail.concepts.length > 0 && (
+                  <div className="pt-1">
+                    <div className="font-orbitron text-[9px] font-bold text-cyan-300 tracking-wider mb-1 flex items-center gap-1">
+                      <span>⚡</span>
+                      <span>CONCEPTS:</span>
+                    </div>
+                    <div className="flex flex-wrap gap-1">
+                      {activeMilestoneDetail.concepts.map((c, i) => (
+                        <span key={i} className="text-[10px] font-vt323 px-1.5 py-0.5 rounded bg-purple-950/80 border border-purple-500/40 text-yellow-200">
+                          • {c}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 <div className="text-[10px] font-vt323 text-gray-400 flex items-center gap-2 pt-0.5">
                   <span className="text-yellow-400">+{activeMilestoneDetail.xp} XP REWARD</span>
                   <span>•</span>

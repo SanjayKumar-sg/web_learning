@@ -116,17 +116,17 @@ export function useRoadmapEngine() {
       return;
     }
 
-    // If clicking a locked milestone ahead of the current objective
+    // If clicking an upcoming milestone ahead of the current objective
     if (!isActiveTarget) {
-      const activeObj = ROADMAP_MILESTONES.find((m) => m.id === state.activeMilestoneId);
       setWizardState({
         visible: true,
-        title: 'SAGE BYTERION // ADVENTURE GUIDE',
-        message: `Our next destination is ${activeObj?.title || 'ahead'}. Touch that island to guide the cat!`,
-        chapterTitle: activeObj?.chapterTitle,
-        chapter: activeObj?.chapter,
-        isChasePoint: false,
-        isRecap: false
+        title: `SAGE BYTERION // ${milestone.title.toUpperCase()}`,
+        message: `${milestone.wizardDialogue}\n\n(Upcoming quest! Finish your active objective first to unlock.)`,
+        chapterTitle: milestone.chapterTitle,
+        chapter: milestone.chapter,
+        isChasePoint: milestone.isChasePoint,
+        isRecap: true,
+        inspectedMilestoneId: milestone.id
       });
       return;
     }
